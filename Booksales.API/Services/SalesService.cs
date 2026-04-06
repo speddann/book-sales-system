@@ -1,7 +1,11 @@
-using Booksales.API.Data;
-using Booksales.API.Models;
-using Microsoft.EntityFrameworkCore;
 using Booksales.API.Common;
+using Booksales.API.Data;
+using Booksales.API.DTOs;
+using Booksales.API.Models;
+using Booksales.API.Validators;
+using Microsoft.EntityFrameworkCore;
+
+namespace Booksales.API.Services;
 
 public class SalesService : ISalesService
 {
@@ -14,48 +18,32 @@ public class SalesService : ISalesService
 
     public CommonResponse<Sale> CreateSale(Sale sale)
     {
-        var validator = new SaleValidator();
-        var validationResult = validator.Validate(sale);
+        if (sale == null)
+            throw new BusinessException("Sale data is required");
 
+        // Always set the date server-side so clients can't fake timestamps
+        sale.Id = 0;
+        sale.Date = DateTime.UtcNow;
+
+        var validationResult = SaleValidator.Validate(sale);
         if (validationResult != "Valid")
-        {
-            return new CommonResponse<Sale>
-            
-            {
-                IsSuccess = false,
-                Message = validationResult,
-                Data = null
-            };
-
-        }
+            throw new BusinessException(validationResult);
 
         foreach (var item in sale.Items)
         {
-            var book =_context.Books.FirstOrDefault(b => b.ID == item.BookID);
-            if (book ==null)
-            {
-                return new CommonResponse<Sale>
-                {
-                    IsSuccess = false,
-                    Message = $"Book with ID {item.BookID} not found",
-                    Data = null
-                };
-            } 
+            var book = _context.Books.FirstOrDefault(b => b.Id == item.BookId);
+            if (book == null)
+                throw new NotFoundException($"Book with ID {item.BookId} not found");
+
             if (book.Stock < item.Quantity)
-            {
-                return new CommonResponse<Sale>
-                {
-                    IsSuccess = false,
-                    Message = $"Not enough stock for book {book.Title}",
-                    Data = null
-                };
-            }
-            
+                throw new BusinessException($"Not enough stock for '{book.Title}'. Available: {book.Stock}");
+
             book.Stock -= item.Quantity;
         }
 
         _context.Sales.Add(sale);
         _context.SaveChanges();
+
         return new CommonResponse<Sale>
         {
             IsSuccess = true,
@@ -64,7 +52,7 @@ public class SalesService : ISalesService
         };
     }
 
-    public List<Sale> GetSales(DateTime? startDate, DateTime? endDate)
+    public List<SaleResponseDto> GetSales(DateTime? startDate, DateTime? endDate)
     {
         var query = _context.Sales
             .Include(s => s.Items)
@@ -77,6 +65,45 @@ public class SalesService : ISalesService
         if (endDate.HasValue)
             query = query.Where(s => s.Date <= endDate.Value);
 
-        return query.ToList();
+        return query.Select(s => new SaleResponseDto
+        {
+            SaleId = s.Id,
+            Date = s.Date,
+            TotalAmount = s.Items.Sum(i => i.Book!.Price * i.Quantity),
+            Items = s.Items.Select(i => new SaleItemDto
+            {
+                BookTitle = i.Book!.Title,
+                Price = i.Book!.Price,
+                Quantity = i.Quantity
+            }).ToList()
+        }).ToList();
+    }
+
+    public List<SalesReportItemDto> GetSalesReport()
+    {
+        return _context.SaleItems
+            .Include(si => si.Book)
+            .GroupBy(si => si.Book!.Title)
+            .Select(g => new SalesReportItemDto
+            {
+                Book = g.Key,
+                TotalSold = g.Sum(i => i.Quantity)
+            })
+            .ToList();
+    }
+
+    public List<SalesReportItemDto> GetTopSellingBooks(int count = 5)
+    {
+        return _context.SaleItems
+            .Include(si => si.Book)
+            .GroupBy(si => si.Book!.Title)
+            .Select(g => new SalesReportItemDto
+            {
+                Book = g.Key,
+                TotalSold = g.Sum(i => i.Quantity)
+            })
+            .OrderByDescending(x => x.TotalSold)
+            .Take(count)
+            .ToList();
     }
 }
