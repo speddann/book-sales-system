@@ -12,6 +12,8 @@ public class AppDbContext : DbContext
 
     // This becomes a table in DB
     public DbSet<Book> Books { get; set; }
+    public DbSet<Sale> Sales { get; set; }
+    public DbSet<SaleItem> SaleItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
