@@ -12,6 +12,16 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IBookService, BookService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 
 // 👇 IMPORTANT LINE (force binding)
 builder.WebHost.UseUrls("http://0.0.0.0:5145");
@@ -22,6 +32,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseCors("AllowAngular");
 
 app.UseSwagger();
 app.UseSwaggerUI();

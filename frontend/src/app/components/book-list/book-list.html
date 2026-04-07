@@ -1,9 +1,85 @@
-<h2>Books</h2>
+<h2>BOOK SALES APPLICATION</h2>
 
-<div *ngFor="let book of books">
-  <h3>{{ book.title }}</h3>
-  <p>Author: {{ book.author }}</p>
-  <p>Price: {{ book.price }}</p>
-  <p>Stock: {{ book.stock }}</p>
-  <hr>
+<div class="nav-bar">
+  <button (click)="showAddForm = true">+ Add Book</button>
+  <button (click)="showOrders = !showOrders">📋 Order History</button>
 </div>
+
+@if (showAddForm || editingBook) {
+  <h2>{{ editingBook ? 'Edit Book' : 'Add Book' }}</h2>
+  <div class="form">
+    @if (editingBook) {
+      <input [(ngModel)]="editingBook.title" placeholder="Title" />
+      <input [(ngModel)]="editingBook.author" placeholder="Author" />
+      <input [(ngModel)]="editingBook.price" type="number" placeholder="Price" />
+      <input [(ngModel)]="editingBook.stock" type="number" placeholder="Stock" />
+      <button (click)="updateBook()">Update</button>
+      <button (click)="editingBook = null">Cancel</button>
+    } @else {
+      <input [(ngModel)]="newBook.title" placeholder="Title" />
+      <input [(ngModel)]="newBook.author" placeholder="Author" />
+      <input [(ngModel)]="newBook.price" type="number" placeholder="Price" />
+      <input [(ngModel)]="newBook.stock" type="number" placeholder="Stock" />
+      <button (click)="addBook(); showAddForm = false">Add Book</button>
+      <button (click)="showAddForm = false">Cancel</button>
+    }
+  </div>
+}
+
+<hr>
+
+<div class="book-container">
+  @for (book of books(); track book.id) {
+    <div class="book-card">
+      <h3>{{ book.title }}</h3>
+      <p><b>Author:</b> {{ book.author || 'N/A' }}</p>
+      <p><b>Price:</b> ${{ book.price }}</p>
+      <p><b>Stock:</b> {{ book.stock }}</p>
+
+      <button (click)="editBook(book)">Edit</button>
+      <button (click)="deleteBook(book.id!)">Delete</button>
+      <button (click)="addToCart(book)">Add to Cart</button>
+    </div>
+  }
+</div>
+
+<hr>
+
+<h2>Cart</h2>
+
+@for (item of cart; track item.book.id) {
+  <div class="cart-item">
+    <p>{{ item.book.title }}</p>
+    <p>Price: ${{ item.book.price }}</p>
+    <p>Quantity: {{ item.quantity }}</p>
+    <p>Total: ${{ item.book.price * item.quantity }}</p>
+    <button (click)="addToCart(item.book)">+</button>
+    <button (click)="decreaseQuantity(item.book.id!)">-</button>
+    <button (click)="removeFromCart(item.book.id!)">Remove</button>
+  </div>
+}
+
+@if (cart.length > 0) {
+<h3>Total: ${{ getTotalPrice() }}</h3>
+<button (click)="checkout()">Checkout</button>
+}
+
+@if (showOrders) {
+  <div class="orders-panel">
+    <h2>Order History</h2>
+    @if (sales().length === 0) {
+      <p>No orders yet.</p>
+    }
+    @for (sale of sales(); track sale.saleId) {
+      <div class="order">
+        <p><b>Order ID:</b> {{ sale.saleId }}</p>
+        <p><b>Date:</b> {{ sale.date | date:'medium' }}</p>
+        <p><b>Total:</b> ${{ sale.totalAmount }}</p>
+        @for (item of sale.items; track item.bookTitle) {
+          <p>{{ item.bookTitle }} — Qty: {{ item.quantity }} — ${{ item.price }}</p>
+        }
+        <hr>
+      </div>
+    }
+  </div>
+}
