@@ -18,6 +18,9 @@ export class BookListComponent implements OnInit {
   showAddForm = false;
   showOrders = false;
   sales = signal<any[]>([]);
+  isCheckingOut: boolean = false;
+  checkoutMessage: string = '';
+  checkoutError: string = ''; 
 
   constructor(private bookService: BookService) {}
 
@@ -69,6 +72,13 @@ export class BookListComponent implements OnInit {
   }
 
   addToCart(book: Book) {
+    const item = this.cart.find(i => i.book.id === book.id);
+
+    if (item && item.quantity >= book.stock) {
+      alert('No more stock available');
+      return;
+    }
+
     this.bookService.addToCart(book);
   }
 
@@ -91,6 +101,12 @@ export class BookListComponent implements OnInit {
   }
 
   checkout() {
+  if (this.cart.length === 0) return;
+
+  this.isCheckingOut = true;
+  this.checkoutMessage = '';
+  this.checkoutError = '';
+
   const sale = {
     items: this.cart.map(item => ({
       bookId: item.book.id,
@@ -99,17 +115,22 @@ export class BookListComponent implements OnInit {
   };
 
   this.bookService.checkout(sale).subscribe({
-    next: (res) => {
-      alert('Order placed successfully!');
-      this.bookService.cart = [];
+    next: () => {
+      this.cart = [];
       localStorage.removeItem('cart');
       this.loadBooks();
-      this.loadSales();
+
+      this.checkoutMessage = 'Order placed successfully!';
+      this.isCheckingOut = false;
     },
     error: (err) => {
-      alert(err.error?.message || 'Checkout failed');
+      this.checkoutError = err.error?.message || 'Checkout failed';
+      this.isCheckingOut = false;
     }
   });
 }
+
+
+
 
 }

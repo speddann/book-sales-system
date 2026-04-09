@@ -61,7 +61,9 @@
 
 @if (cart.length > 0) {
 <h3>Total: ${{ getTotalPrice() }}</h3>
-<button (click)="checkout()">Checkout</button>
+<button (click)="checkout()" [disabled]="cart.length === 0 || isCheckingOut">
+  {{ isCheckingOut ? 'Placing Order...' : 'Checkout' }}
+</button>
 }
 
 @if (showOrders) {
@@ -82,4 +84,8 @@
       </div>
     }
   </div>
+}
+
+@if (cart.length === 0) {
+  <p>End of Orders 🛒</p>
 }

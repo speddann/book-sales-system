@@ -1,0 +1,19 @@
+<h2>Order History</h2>
+
+@if (sales.length === 0) {
+  <p>No orders yet.</p>
+}
+
+@for (sale of sales; track sale.saleId) {
+  <div class="order">
+    <p><b>Order ID:</b> {{ sale.saleId }}</p>
+    <p><b>Date:</b> {{ sale.date | date:'medium' }}</p>
+    <p><b>Total:</b> ${{ sale.totalAmount }}</p>
+
+    @for (item of sale.items; track item.bookTitle) {
+      <p>{{ item.bookTitle }} - Qty: {{ item.quantity }} - ${{ item.price }}</p>
+    }
+
+    <hr>
+  </div>
+}
