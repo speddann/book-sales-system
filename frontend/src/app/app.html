@@ -1,1 +1,14 @@
-<app-book-list></app-book-list>
+<h1>BOOK SALES APPLICATION</h1>
+
+<button (click)="view = 'shop'">Shop</button>
+<button (click)="view = 'orders'">Orders</button>
+
+<hr>
+
+@if (view === 'shop') {
+  <app-book-list></app-book-list>
+}
+
+@if (view === 'orders') {
+  <app-orders></app-orders>
+}

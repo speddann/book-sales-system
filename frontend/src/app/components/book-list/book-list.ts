@@ -116,9 +116,10 @@ export class BookListComponent implements OnInit {
 
   this.bookService.checkout(sale).subscribe({
     next: () => {
-      this.cart = [];
+      this.bookService.cart = [];
       localStorage.removeItem('cart');
       this.loadBooks();
+      this.loadSales();
 
       this.checkoutMessage = 'Order placed successfully!';
       this.isCheckingOut = false;

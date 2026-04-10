@@ -5,13 +5,15 @@
 }
 
 @for (sale of sales; track sale.saleId) {
-  <div class="order">
+  <div class="order-card">
     <p><b>Order ID:</b> {{ sale.saleId }}</p>
-    <p><b>Date:</b> {{ sale.date | date:'medium' }}</p>
-    <p><b>Total:</b> ${{ sale.totalAmount }}</p>
+    <p>Placed on: {{ (sale.saleDate ?? sale.date) | date:'medium' }}</p>
+    <p class="order-total"><b>Total:</b> ${{ getOrderTotal(sale) }}</p>
 
     @for (item of sale.items; track item.bookTitle) {
-      <p>{{ item.bookTitle }} - Qty: {{ item.quantity }} - ${{ item.price }}</p>
+      <div class="order-item">
+        <p>{{ item.bookTitle }} - Qty: {{ item.quantity }} - ${{ item.price * item.quantity }}</p>
+      </div>
     }
 
     <hr>

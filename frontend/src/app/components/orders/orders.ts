@@ -20,4 +20,12 @@ export class OrdersComponent implements OnInit {
       this.sales = data.data ?? data;
     });
   }
+
+  getOrderTotal(sale: any): number {
+    return (sale?.items ?? []).reduce((total: number, item: any) => {
+      const price = item?.price ?? item?.book?.price ?? 0;
+      const quantity = item?.quantity ?? 0;
+      return total + (price * quantity);
+    }, 0);
+  }
 }

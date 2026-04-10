@@ -1,0 +1,17 @@
+.order-card {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+.order-item {
+  margin-bottom: 8px;
+}
+
+.order-total {
+  font-weight: bold;
+  margin-top: 12px;
+}
