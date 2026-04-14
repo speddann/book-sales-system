@@ -52,12 +52,40 @@ public class SalesService : ISalesService
         };
     }
 
-    public List<SaleResponseDto> GetSales(DateTime? startDate, DateTime? endDate)
+    public List<SaleResponseDto> GetSales(DateTime? startDate, DateTime? endDate, string? range)
     {
         var query = _context.Sales
             .Include(s => s.Items)
             .ThenInclude(i => i.Book)
             .AsQueryable();
+
+            var now = DateTime.UtcNow;
+        // Predefined range filter
+        if (!string.IsNullOrWhiteSpace(range))
+        {
+            switch (range.ToLower())
+            {
+                case "7days":
+                    query = query.Where(s => s.Date >= now.AddDays(-7));
+                    break;
+
+                case "1month":
+                    query = query.Where(s => s.Date >= now.AddMonths(-1));
+                    break;
+
+                case "3months":
+                    query = query.Where(s => s.Date >= now.AddMonths(-3));
+                    break;
+
+                case "12months":
+                    query = query.Where(s => s.Date >= now.AddMonths(-12));
+                    break;
+
+                case "all":
+                default:
+                    break;
+            }
+        }
 
         if (startDate.HasValue)
             query = query.Where(s => s.Date >= startDate.Value);
@@ -65,18 +93,21 @@ public class SalesService : ISalesService
         if (endDate.HasValue)
             query = query.Where(s => s.Date <= endDate.Value);
 
-        return query.Select(s => new SaleResponseDto
-        {
-            SaleId = s.Id,
-            Date = s.Date,
-            TotalAmount = s.Items.Sum(i => i.Book!.Price * i.Quantity),
-            Items = s.Items.Select(i => new SaleItemDto
+        return query
+            .OrderByDescending(s => s.Date)
+            .Select(s => new SaleResponseDto
             {
-                BookTitle = i.Book!.Title,
-                Price = i.Book!.Price,
-                Quantity = i.Quantity
-            }).ToList()
-        }).ToList();
+                SaleId = s.Id,
+                Date = s.Date,
+                TotalAmount = s.Items.Sum(i => i.Book!.Price * i.Quantity),
+                Items = s.Items.Select(i => new SaleItemDto
+                {
+                    BookTitle = i.Book!.Title,
+                    Price = i.Book!.Price,
+                    Quantity = i.Quantity
+                }).ToList()
+            })
+            .ToList();
     }
 
     public List<SalesReportItemDto> GetSalesReport()

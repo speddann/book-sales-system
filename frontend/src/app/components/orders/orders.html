@@ -1,5 +1,16 @@
 <h2>Order History</h2>
 
+<div class="order-filters">
+  <label for="startDate">Start Date:</label>
+  <input id="startDate" type="date" [(ngModel)]="startDate" />
+
+  <label for="endDate">End Date:</label>
+  <input id="endDate" type="date" [(ngModel)]="endDate" />
+
+  <button (click)="applyFilter()">Apply Filter</button>
+  <button (click)="clearFilter()">Clear</button>
+</div>
+
 @if (sales$ | async; as sales) {
   @if (sales.length === 0) {
     <p>No orders yet.</p>

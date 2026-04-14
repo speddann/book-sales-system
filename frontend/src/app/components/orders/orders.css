@@ -1,3 +1,16 @@
+.order-filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.order-filters input,
+.order-filters button {
+  padding: 6px 10px;
+}
+
 .order-card {
   border: 1px solid #ccc;
   border-radius: 10px;
