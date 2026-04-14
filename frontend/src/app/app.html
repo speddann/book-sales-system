@@ -1,14 +1,24 @@
-<h1>BOOK SALES APPLICATION</h1>
+<header class="navbar">
+  <h1>Book Sales Application</h1>
 
-<button (click)="view = 'shop'">Shop</button>
-<button (click)="view = 'orders'">Orders</button>
+  <div class="nav-buttons">
+    <button (click)="view = 'shop'">Shop</button>
+    <button (click)="goToOrders()">Orders</button>
+    <button class="cart-badge" (click)="view = 'shop'">
+      Cart
+      @if (cartCount$ | async; as count) {
+        <span class="badge">{{ count }}</span>
+      }
+    </button>
+  </div>
+</header>
 
-<hr>
+<main class="page-content">
+  @if (view === 'shop') {
+    <app-book-list (checkoutSuccess)="goToOrders()"></app-book-list>
+  }
 
-@if (view === 'shop') {
-  <app-book-list></app-book-list>
-}
-
-@if (view === 'orders') {
-  <app-orders></app-orders>
-}
+  @if (view === 'orders') {
+    <app-orders></app-orders>
+  }
+</main>

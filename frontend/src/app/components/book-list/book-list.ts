@@ -1,44 +1,40 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { Observable } from 'rxjs';
 import { BookService, Book, CartItem } from '../../services/book';
 
 @Component({
   selector: 'app-book-list',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, AsyncPipe],
   templateUrl: './book-list.html',
   styleUrls: ['./book-list.css']
 })
+
 export class BookListComponent implements OnInit {
 
+  @Output() checkoutSuccess = new EventEmitter<void>();
+
   books = signal<Book[]>([]);
+  cart$: Observable<CartItem[]>;
   newBook: Book = { title: '', author: '', price: 0, stock: 0 };
   editingBook: Book | null = null;
   showAddForm = false;
   showOrders = false;
-  sales = signal<any[]>([]);
+  sales$: Observable<any[]>;
   isCheckingOut: boolean = false;
   checkoutMessage: string = '';
   checkoutError: string = ''; 
 
-  constructor(private bookService: BookService) {}
+  constructor(private bookService: BookService) {
+    this.sales$ = this.bookService.sales$;
+    this.cart$ = this.bookService.cart$;
+  }
 
   ngOnInit() {
     this.loadBooks();
-
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      this.bookService.cart = JSON.parse(savedCart);
-    }
-
-    this.loadSales();
-  }
-
-  loadSales() {
-    this.bookService.getSales().subscribe((data: any) => {
-      this.sales.set(data.data ?? data);
-    });
   }
 
   loadBooks() {
@@ -72,13 +68,6 @@ export class BookListComponent implements OnInit {
   }
 
   addToCart(book: Book) {
-    const item = this.cart.find(i => i.book.id === book.id);
-
-    if (item && item.quantity >= book.stock) {
-      alert('No more stock available');
-      return;
-    }
-
     this.bookService.addToCart(book);
   }
 
@@ -90,25 +79,30 @@ export class BookListComponent implements OnInit {
     this.bookService.removeFromCart(id);
   }
 
-  get cart(): CartItem[] {
-    return this.bookService.cart;
+  removeItemFromCart(item: CartItem) {
+    if (item.book.id == null) return;
+    this.removeFromCart(item.book.id);
   }
 
-  getTotalPrice() {
-  return this.cart.reduce((total, item) => 
-    total + item.book.price * item.quantity, 0);
-  
+  decreaseCartItem(item: CartItem) {
+    if (item.book.id == null) return;
+    this.decreaseQuantity(item.book.id);
+  }
+
+  getTotalPrice(cart: CartItem[]) {
+    return cart.reduce((total, item) => total + item.book.price * item.quantity, 0);
   }
 
   checkout() {
-  if (this.cart.length === 0) return;
+  const cart = this.bookService.getCurrentCart();
+  if (cart.length === 0) return;
 
   this.isCheckingOut = true;
   this.checkoutMessage = '';
   this.checkoutError = '';
 
   const sale = {
-    items: this.cart.map(item => ({
+    items: cart.map(item => ({
       bookId: item.book.id,
       quantity: item.quantity
     }))
@@ -116,13 +110,14 @@ export class BookListComponent implements OnInit {
 
   this.bookService.checkout(sale).subscribe({
     next: () => {
-      this.bookService.cart = [];
-      localStorage.removeItem('cart');
+      this.bookService.clearCart();
       this.loadBooks();
-      this.loadSales();
+      this.bookService.loadSales();
 
       this.checkoutMessage = 'Order placed successfully!';
       this.isCheckingOut = false;
+      console.log('checkout success emit');
+      this.checkoutSuccess.emit();
     },
     error: (err) => {
       this.checkoutError = err.error?.message || 'Checkout failed';

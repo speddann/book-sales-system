@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 
 export interface Book {
   id?: number;
@@ -27,7 +27,13 @@ export interface CartItem {
 export class BookService {
 
   private apiUrl = 'http://localhost:5145/api/books';
-  cart: CartItem[] = [];
+  private salesApiUrl = 'http://localhost:5145/api/sales';
+
+  private salesSubject = new BehaviorSubject<any[]>([]);
+  sales$ = this.salesSubject.asObservable();
+
+  private cartSubject = new BehaviorSubject<CartItem[]>(this.loadCartFromStorage());
+  cart$ = this.cartSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -47,39 +53,80 @@ export class BookService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  private loadCartFromStorage(): CartItem[] {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  }
+
+  private saveCart(cart: CartItem[]) {
+    localStorage.setItem('cart', JSON.stringify(cart));
+    this.cartSubject.next(cart);
+  }
+
+  getCurrentCart(): CartItem[] {
+    return this.cartSubject.getValue();
+  }
+
   addToCart(book: Book) {
-    const item  = this.cart.find(i => i.book.id === book.id);
-    if (item ) {
-      item.quantity++;
+    const cart = this.getCurrentCart();
+    const item = cart.find(i => i.book.id === book.id);
+
+    if (item) {
+      if (item.quantity < book.stock) {
+        item.quantity++;
+      } else {
+        alert('No more stock available');
+      }
     } else {
-      this.cart.push({ book, quantity: 1 });
+      cart.push({ book, quantity: 1 });
     }
 
-    localStorage.setItem('cart', JSON.stringify(this.cart));
+    this.saveCart([...cart]);
   }
 
-
-  removeFromCart(bookId: number) {
-    this.cart = this.cart.filter(item => item.book.id !== bookId);
-    localStorage.setItem('cart', JSON.stringify(this.cart));
-  }
   decreaseQuantity(bookId: number) {
-    const item = this.cart.find(i => i.book.id === bookId);
+    const cart = this.getCurrentCart();
+    const item = cart.find(i => i.book.id === bookId);
+
     if (item) {
       item.quantity--;
+
       if (item.quantity <= 0) {
-        this.removeFromCart(bookId);
-      } else {
-        localStorage.setItem('cart', JSON.stringify(this.cart));
+        const updatedCart = cart.filter(i => i.book.id !== bookId);
+        this.saveCart(updatedCart);
+        return;
       }
     }
+
+    this.saveCart([...cart]);
+  }
+
+  removeFromCart(bookId: number) {
+    const updatedCart = this.getCurrentCart().filter(i => i.book.id !== bookId);
+    this.saveCart(updatedCart);
+  }
+
+  clearCart() {
+    localStorage.removeItem('cart');
+    this.cartSubject.next([]);
+  }
+
+  getCartCount(): number {
+    return this.getCurrentCart().reduce((total, item) => total + item.quantity, 0);
   }
 
   checkout(sale: any) {
-    return this.http.post('http://localhost:5145/api/sales', sale);
+    return this.http.post(this.salesApiUrl, sale);
   }
 
   getSales() {
-    return this.http.get('http://localhost:5145/api/sales');
+    return this.http.get(this.salesApiUrl);
+  }
+
+  loadSales() {
+    this.http.get<any>(this.salesApiUrl).subscribe((data: any) => {
+      const sales = data.data ?? data;
+      this.salesSubject.next(sales);
+    });
   }
 }

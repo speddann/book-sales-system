@@ -2,7 +2,6 @@
 
 <div class="nav-bar">
   <button (click)="showAddForm = true">+ Add Book</button>
-  <button (click)="showOrders = !showOrders">📋 Order History</button>
 </div>
 
 @if (showAddForm || editingBook) {
@@ -28,64 +27,89 @@
 
 <hr>
 
-<div class="book-container">
-  @for (book of books(); track book.id) {
-    <div class="book-card">
-      <h3>{{ book.title }}</h3>
-      <p><b>Author:</b> {{ book.author || 'N/A' }}</p>
-      <p><b>Price:</b> ${{ book.price }}</p>
-      <p><b>Stock:</b> {{ book.stock }}</p>
+<div class="shop-layout">
+  <div class="books-section">
+    <h2>Books</h2>
 
-      <button (click)="editBook(book)">Edit</button>
-      <button (click)="deleteBook(book.id!)">Delete</button>
-      <button (click)="addToCart(book)">Add to Cart</button>
+    <div class="book-container">
+      @for (book of books(); track book.id) {
+        <div class="book-card">
+          <h3>{{ book.title }}</h3>
+          <p><b>Author:</b> {{ book.author || 'N/A' }}</p>
+          <p><b>Price:</b> ${{ book.price }}</p>
+          <p><b>Stock:</b> {{ book.stock }}</p>
+
+          <button (click)="editBook(book)">Edit</button>
+          <button (click)="deleteBook(book.id!)">Delete</button>
+          <button (click)="addToCart(book)">Add to Cart</button>
+        </div>
+      }
     </div>
-  }
-</div>
-
-<hr>
-
-<h2>Cart</h2>
-
-@for (item of cart; track item.book.id) {
-  <div class="cart-item">
-    <p>{{ item.book.title }}</p>
-    <p>Price: ${{ item.book.price }}</p>
-    <p>Quantity: {{ item.quantity }}</p>
-    <p>Total: ${{ item.book.price * item.quantity }}</p>
-    <button (click)="addToCart(item.book)">+</button>
-    <button (click)="decreaseQuantity(item.book.id!)">-</button>
-    <button (click)="removeFromCart(item.book.id!)">Remove</button>
   </div>
-}
 
-@if (cart.length > 0) {
-<h3>Total: ${{ getTotalPrice() }}</h3>
-<button (click)="checkout()" [disabled]="cart.length === 0 || isCheckingOut">
-  {{ isCheckingOut ? 'Placing Order...' : 'Checkout' }}
-</button>
-}
+  <div class="cart-section">
+    <h2>Cart</h2>
+
+    @if (cart$ | async; as cart) {
+      @if (cart.length === 0) {
+        <p>Your cart is empty 🛒</p>
+      }
+
+      @for (item of cart; track item.book.id) {
+        <div class="cart-item">
+          <p><b>{{ item.book.title }}</b></p>
+          <p>Price: ${{ item.book.price }}</p>
+          <p>Quantity: {{ item.quantity }}</p>
+          <p>Total: ${{ item.book.price * item.quantity }}</p>
+
+          <button (click)="addToCart(item.book)">+</button>
+          <button (click)="decreaseCartItem(item)">-</button>
+          <button (click)="removeItemFromCart(item)">Remove</button>
+        </div>
+      }
+
+      @if (cart.length > 0) {
+        <h3>Total: ${{ getTotalPrice(cart) }}</h3>
+        <button (click)="checkout()" [disabled]="isCheckingOut">
+          {{ isCheckingOut ? 'Placing Order...' : 'Checkout' }}
+        </button>
+      }
+    }
+
+    @if (checkoutMessage) {
+      <p class="success-message">{{ checkoutMessage }}</p>
+    }
+
+    @if (checkoutError) {
+      <p class="error-message">{{ checkoutError }}</p>
+    }
+  </div>
+</div>
 
 @if (showOrders) {
   <div class="orders-panel">
     <h2>Order History</h2>
-    @if (sales().length === 0) {
-      <p>No orders yet.</p>
-    }
-    @for (sale of sales(); track sale.saleId) {
-      <div class="order">
-        <p><b>Order ID:</b> {{ sale.saleId }}</p>
-        <p><b>Date:</b> {{ sale.date | date:'medium' }}</p>
-        <p><b>Total:</b> ${{ sale.totalAmount }}</p>
-        @for (item of sale.items; track item.bookTitle) {
-          <p>{{ item.bookTitle }} — Qty: {{ item.quantity }} — ${{ item.price }}</p>
-        }
-        <hr>
-      </div>
+    @if (sales$ | async; as sales) {
+      @if (sales.length === 0) {
+        <p>No orders yet.</p>
+      }
+      @for (sale of sales; track sale.saleId) {
+        <div class="order">
+          <p><b>Order ID:</b> {{ sale.saleId }}</p>
+          <p><b>Date:</b> {{ sale.date | date:'medium' }}</p>
+          <p><b>Total:</b> ${{ sale.totalAmount }}</p>
+          @for (item of sale.items; track item.bookTitle) {
+            <p>{{ item.bookTitle }} — Qty: {{ item.quantity }} — ${{ item.price }}</p>
+          }
+          <hr>
+        </div>
+      }
     }
   </div>
 }
 
-@if (cart.length === 0) {
-  <p>End of Orders 🛒</p>
+@if (showOrders && (sales$ | async); as sales) {
+  @if (sales.length > 0) {
+    <p>End of Orders 🛒</p>
+  }
 }

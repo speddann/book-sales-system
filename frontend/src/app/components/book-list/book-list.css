@@ -1,3 +1,24 @@
+.shop-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.books-section {
+  flex: 3;
+}
+
+.cart-section {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 20px;
+}
+
 .book-container {
   display: flex;
   flex-wrap: wrap;
@@ -7,9 +28,15 @@
 .book-card {
   border: 1px solid #ccc;
   padding: 15px;
-  width: 200px;
+  width: 220px;
   border-radius: 10px;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+  background: white;
+}
+
+.cart-item {
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
 }
 
 .nav-bar {
@@ -28,6 +55,18 @@
 
 .order {
   margin-bottom: 10px;
+}
+
+.success-message {
+  color: green;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
 }
 
 button {
