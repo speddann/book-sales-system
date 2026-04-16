@@ -60,6 +60,15 @@ public class SalesService : ISalesService
             .AsQueryable();
 
             var now = DateTime.UtcNow;
+
+            if (!startDate.HasValue && !endDate.HasValue && string.IsNullOrWhiteSpace(range)
+
+            {
+                // Default to last 7 days if no filters provided
+                query = query.Where(s => s.Date >= now.AddDays(-7));
+            }
+
+
         // Predefined range filter
         if (!string.IsNullOrWhiteSpace(range))
         {
