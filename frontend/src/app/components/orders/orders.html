@@ -1,19 +1,75 @@
 <h2>Order History</h2>
 
-<div class="order-filters">
-  <label for="startDate">Start Date:</label>
-  <input id="startDate" type="date" [(ngModel)]="startDate" />
-
-  <label for="endDate">End Date:</label>
-  <input id="endDate" type="date" [(ngModel)]="endDate" />
-
-  <button (click)="applyFilter()">Apply Filter</button>
-  <button (click)="clearFilter()">Clear</button>
+<div class="orders-toolbar">
+  <button (click)="openFilterPanel()">Filter</button>
+  <p class="active-filter"><b>Showing:</b> {{ activeFilterLabel }}</p>
 </div>
+
+@if (showFilterPanel) {
+  <div class="filter-overlay">
+    <div class="filter-panel">
+      <div class="filter-header">
+        <button (click)="closeFilterPanel()">Back</button>
+        <button (click)="applyFilter()">Apply</button>
+      </div>
+
+      <h3>FILTER BY ORDER DATE</h3>
+
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="last7days" />
+        Last 7 days
+      </label>
+
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="last30days" />
+        Last 30 days
+      </label>
+
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="last3months" />
+        Last 3 months
+      </label>
+
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="thisMonth" />
+        This month
+      </label>
+
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="2026" />
+        2026
+      </label>
+
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="2025" />
+        2025
+      </label>
+
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="custom" />
+        Custom Range
+      </label>
+
+      @if (selectedDateFilter === 'custom') {
+        <div class="custom-range">
+          <label for="startDate">Start Date:</label>
+          <input id="startDate" type="date" [(ngModel)]="startDate" />
+
+          <label for="endDate">End Date:</label>
+          <input id="endDate" type="date" [(ngModel)]="endDate" />
+        </div>
+      }
+
+      <div class="filter-actions">
+        <button (click)="clearFilter()">Reset to Last 7 Days</button>
+      </div>
+    </div>
+  </div>
+}
 
 @if (sales$ | async; as sales) {
   @if (sales.length === 0) {
-    <p>No orders yet.</p>
+    <p>No orders found for {{ activeFilterLabel }}.</p>
   }
 
   @for (sale of sales; track sale.saleId) {

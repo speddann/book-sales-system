@@ -145,4 +145,5 @@
         this.salesSubject.next(sales);
       });
     }
+    
   }

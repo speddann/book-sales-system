@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { BookListComponent } from './components/book-list/book-list';
 import { OrdersComponent } from './components/orders/orders';
@@ -12,7 +12,7 @@ import { Observable, map } from 'rxjs';
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   view: 'shop' | 'orders' = 'shop';
   cartCount$: Observable<number>;
 
@@ -22,13 +22,7 @@ export class AppComponent implements OnInit {
     );
   }
 
-  ngOnInit() {
-    this.bookService.loadSales();
-  }
-
   goToOrders() {
-    
-    this.bookService.loadSales();
     this.view = 'orders';
   }
 }
