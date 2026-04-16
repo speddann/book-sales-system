@@ -26,7 +26,9 @@ public class SalesController : ControllerBase
 
     // GET: api/sales?startDate=...&endDate=...
     [HttpGet]
-    public IActionResult GetSales([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? range)
+    public IActionResult GetSales([FromQuery] DateTime? startDate,
+                                 [FromQuery] DateTime? endDate, 
+                                 [FromQuery] string? range)
     {
         if (startDate.HasValue && endDate.HasValue && startDate > endDate)
             throw new BusinessException("startDate must be before or equal to endDate");
