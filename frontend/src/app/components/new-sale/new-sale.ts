@@ -1,7 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BookService, Book } from '../../services/book';
-import { DecimalPipe } from '@angular/common';
+import { BookService, Book, Customer } from '../../services/book';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 interface SaleCartItem {
   book: Book;
@@ -11,25 +11,61 @@ interface SaleCartItem {
 @Component({
   selector: 'app-new-sale',
   standalone: true,
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DatePipe, DecimalPipe],
   templateUrl: './new-sale.html',
   styleUrls: ['./new-sale.css']
 })
 export class NewSaleComponent implements OnInit {
+  @Output() saleCompleted = new EventEmitter<void>();
 
   books = signal<Book[]>([]);
+  customers = signal<Customer[]>([]);
   searchText: string = '';
+  customerSearchText: string = '';
+  selectedCustomer: Customer | null = null;
   saleCart: SaleCartItem[] = [];
   paymentMethod: string = 'etransfer';
   checkoutMessage: string = '';
   checkoutError: string = '';
   isCheckingOut: boolean = false;
+  customerSummary: any = null;
 
   constructor(private bookService: BookService) {}
 
   ngOnInit(): void {
     this.loadBooks();
   }
+
+  onCustomerSearchChange(): void {
+    const term = this.customerSearchText.trim();
+
+    if (!term) {
+      this.customers.set([]);
+      this.selectedCustomer = null;
+      return;
+    }
+
+    this.bookService.searchCustomers(term).subscribe(customers => {
+      this.customers.set(customers);
+    });
+  }
+
+  selectCustomer(customer: Customer): void {
+    this.selectedCustomer = customer;
+    this.customerSearchText = customer.name;
+    this.customers.set([]);
+    this.bookService.getCustomerSummary(customer.id!).subscribe(summary => {
+      this.customerSummary = summary;
+    });
+
+
+  }
+
+    clearCustomer(): void {
+      this.selectedCustomer = null;
+      this.customerSearchText = '';
+      this.customerSummary = null;
+    }
 
   loadBooks(): void {
     this.bookService.getBooks().subscribe(data => {
@@ -89,53 +125,56 @@ export class NewSaleComponent implements OnInit {
     return this.saleCart.reduce((total, item) => {
       return total + item.book.price * item.quantity;
     }, 0);
-    
   }
-      getEtransferFee(): number {
-      if (this.paymentMethod !== 'etransfer') {
-        return 0;
-      }
 
-      return this.getSubtotal() * 0.05;
+  getEtransferFee(): number {
+    if (this.paymentMethod !== 'etransfer') {
+      return 0;
     }
 
-    getFinalTotal(): number {
-      return this.getSubtotal() + this.getEtransferFee();
+    return this.getSubtotal() * 0.05;
+  }
+
+  getFinalTotal(): number {
+    return this.getSubtotal() + this.getEtransferFee();
+  }
+
+  completeSale(): void {
+    if (this.saleCart.length === 0) {
+      this.checkoutError = 'Please add at least one book to complete the sale.';
+      return;
     }
 
-    completeSale(): void {
-      if (this.saleCart.length === 0) {
-        this.checkoutError = 'Please add at least one book to complete the sale.';
-        return;
+    this.isCheckingOut = true;
+    this.checkoutMessage = '';
+    this.checkoutError = '';
+
+    const sale = {
+      paymentMethod: this.paymentMethod,
+      customerId: this.selectedCustomer?.id ?? null,
+      items: this.saleCart.map(item => ({
+        bookId: item.book.id,
+        quantity: item.quantity
+      }))
+    };
+
+    this.bookService.checkout(sale).subscribe({
+      next: (response: any) => {
+        const savedSale = response?.data ?? response;
+        this.bookService.setLastSale(savedSale);
+        this.saleCart = [];
+        this.searchText = '';
+        this.clearCustomer();
+        this.loadBooks();
+
+        this.isCheckingOut = false;
+        this.bookService.loadSales();
+        this.saleCompleted.emit();
+      },
+      error: (err) => {
+        this.checkoutError = err.error?.message || 'Sale failed.';
+        this.isCheckingOut = false;
       }
-
-      this.isCheckingOut = true;
-      this.checkoutMessage = '';
-      this.checkoutError = '';
-
-      const sale = {
-        paymentMethod: this.paymentMethod,
-        items: this.saleCart.map(item => ({
-          bookId: item.book.id,
-          quantity: item.quantity
-        }))
-      };
-
-      this.bookService.checkout(sale).subscribe({
-        next: () => {
-          this.saleCart = [];
-          this.searchText = '';
-          this.loadBooks();
-
-          this.checkoutMessage = 'Sale completed successfully.';
-          this.isCheckingOut = false;
-
-          this.bookService.loadSales();
-        },
-        error: (err) => {
-          this.checkoutError = err.error?.message || 'Sale failed.';
-          this.isCheckingOut = false;
-        }
-      });
-}
+    });
+  }
 }

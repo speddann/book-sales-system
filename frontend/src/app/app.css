@@ -17,6 +17,13 @@
   padding: 24px;
 }
 
+.receipt-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f9f9f9;
+}
+
 .cart-badge {
   position: relative;
 }

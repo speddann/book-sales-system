@@ -2,7 +2,53 @@
 
 <section class="customer-section">
   <h3>Customer</h3>
-  <p>Customer: Guest</p>
+
+  <input
+    type="text"
+    placeholder="Search customer by name, phone, or email"
+    [(ngModel)]="customerSearchText"
+    (ngModelChange)="onCustomerSearchChange()"
+  />
+
+  @if (selectedCustomer) {
+    <p>
+      Selected: <b>{{ selectedCustomer.name }}</b>
+      @if (selectedCustomer.phone) {
+        <span> | {{ selectedCustomer.phone }}</span>
+      }
+      @if (selectedCustomer.email) {
+        <span> | {{ selectedCustomer.email }}</span>
+      }
+    </p>
+
+    @if (customerSummary) {
+      <div class="customer-summary">
+        <p><b>Previous Orders:</b> {{ customerSummary.totalOrders }}</p>
+        <p><b>Total Spent:</b> ${{ customerSummary.totalSpent | number:'1.2-2' }}</p>
+        <p><b>Last Purchase:</b> {{ customerSummary.lastPurchaseDate | date:'medium' }}</p>
+      </div>
+    }
+
+    <button (click)="clearCustomer()">Use Guest Instead</button>
+  } @else {
+    <p>Customer: Guest</p>
+  }
+
+  @if (customers().length > 0) {
+    <div class="customer-results">
+      @for (customer of customers(); track customer.id) {
+        <button type="button" (click)="selectCustomer(customer)">
+          {{ customer.name }}
+          @if (customer.phone) {
+            <span> - {{ customer.phone }}</span>
+          }
+          @if (customer.email) {
+            <span> - {{ customer.email }}</span>
+          }
+        </button>
+      }
+    </div>
+  }
 </section>
 
 <section class="book-search-section">

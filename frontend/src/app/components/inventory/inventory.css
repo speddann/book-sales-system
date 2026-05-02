@@ -1,0 +1,31 @@
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.inventory-table th,
+.inventory-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.inventory-table th {
+  background-color: #f5f5f5;
+}
+
+.inventory-table input,
+.inventory-table select {
+  padding: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.success {
+  color: green;
+}
+
+.error {
+  color: red;
+}

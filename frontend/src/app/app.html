@@ -5,6 +5,7 @@
     <button (click)="goToNewSale()">New Sale</button>
     <button (click)="view = 'shop'">Shop</button>
     <button (click)="goToOrders()">Orders</button>
+    <button (click)="goToInventory()">Inventory</button>
     <button class="cart-badge" (click)="view = 'shop'">
       Cart
       @if (cartCount$ | async; as count) {
@@ -16,14 +17,22 @@
 
 <main class="page-content">
   @if (view === 'shop') {
-    <app-book-list (checkoutSuccess)="goToOrders()"></app-book-list>
+    <app-book-list (checkoutSuccess)="goToReceipt()"></app-book-list>
   }
 
   @if (view === 'orders') {
     <app-orders></app-orders>
   }
 
-  @if (view === 'newSale') {
-    <app-new-sale></app-new-sale>
+  @if (view === 'new-sale') {
+    <app-new-sale (saleCompleted)="goToReceipt()"></app-new-sale>
+  }
+
+  @if (view === 'receipt') {
+    <app-receipt></app-receipt>
+  }
+
+  @if (view === 'inventory') {
+    <app-inventory></app-inventory>
   }
 </main>

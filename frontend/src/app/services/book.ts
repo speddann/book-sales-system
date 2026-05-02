@@ -21,6 +21,14 @@
     quantity: number;
   }
 
+  export interface Customer {
+    id?: number;
+    name: string;
+    phone?: string;
+    email?: string;
+    createdDate?: string;
+  }
+
   @Injectable({
     providedIn: 'root'
   })
@@ -28,6 +36,7 @@
 
     private apiUrl = 'http://localhost:5145/api/books';
     private salesApiUrl = 'http://localhost:5145/api/sales';
+    private customersApiUrl = 'http://localhost:5145/api/customers';
 
     private salesSubject = new BehaviorSubject<any[]>([]);
     sales$ = this.salesSubject.asObservable();
@@ -101,6 +110,10 @@
       this.saveCart([...cart]);
     }
 
+    adjustStock(bookId: number, adjustment: any) {
+      return this.http.post(`${this.apiUrl}/${bookId}/stock-adjustment`, adjustment);
+    }
+
     removeFromCart(bookId: number) {
       const updatedCart = this.getCurrentCart().filter(i => i.book.id !== bookId);
       this.saveCart(updatedCart);
@@ -117,6 +130,18 @@
 
     checkout(sale: any) {
       return this.http.post(this.salesApiUrl, sale);
+    }
+
+    getCustomers() {
+      return this.http.get<Customer[]>(this.customersApiUrl);
+    }
+
+    searchCustomers(term: string) {
+      return this.http.get<Customer[]>(`${this.customersApiUrl}/search?term=${encodeURIComponent(term)}`);
+    }
+
+    createCustomer(customer: Customer) {
+      return this.http.post<Customer>(this.customersApiUrl, customer);
     }
 
     getSales(startDate?: string, endDate?: string, range?: string) {
@@ -149,5 +174,18 @@
         this.salesSubject.next(sales);
       });
     }
+
+    private lastSaleSubject = new BehaviorSubject<any | null>(null);
+    lastSale$ = this.lastSaleSubject.asObservable();
+
+    setLastSale(sale: any) {
+      this.lastSaleSubject.next(sale);
+    }
     
+    getCustomerSummary(customerId: number) {
+      return this.http.get<any>(`http://localhost:5145/api/customers/${customerId}/summary`);
+    }
+
+
+
   }

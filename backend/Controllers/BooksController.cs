@@ -2,6 +2,7 @@ using Booksales.API.Common;
 using Booksales.API.Models;
 using Booksales.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Booksales.API.DTOs;
 
 namespace Booksales.API.Controllers;
 
@@ -62,6 +63,16 @@ public class BooksController : ControllerBase
             throw new BusinessException("Id must be greater than zero");
 
         var result = _bookService.DeleteBook(id);
+        return Ok(result);
+    }
+
+   [HttpPost("{id:int}/stock-adjustment")]
+    public IActionResult AdjustStock(int id, StockAdjustmentDto request)
+    {
+        if (id <= 0)
+            throw new BusinessException("Id must be greater than zero");
+
+        var result = _bookService.AdjustStock(id, request);
         return Ok(result);
     }
 }

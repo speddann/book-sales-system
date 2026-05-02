@@ -1,0 +1,64 @@
+<h2>Inventory Management</h2>
+
+@if (message) {
+  <p class="success">{{ message }}</p>
+}
+
+@if (error) {
+  <p class="error">{{ error }}</p>
+}
+
+@if (books().length === 0) {
+  <p>No books found.</p>
+}
+
+<table class="inventory-table">
+  <thead>
+    <tr>
+      <th>Book</th>
+      <th>Author</th>
+      <th>Current Stock</th>
+      <th>Type</th>
+      <th>Quantity</th>
+      <th>Reason</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    @for (book of books(); track book.id) {
+      <tr>
+        <td>{{ book.title }}</td>
+        <td>{{ book.author }}</td>
+        <td>{{ book.stock }}</td>
+
+        <td>
+          <select [(ngModel)]="adjustments[book.id!].type">
+            <option value="increase">Increase</option>
+            <option value="decrease">Decrease</option>
+          </select>
+        </td>
+
+        <td>
+          <input
+            type="number"
+            min="1"
+            [(ngModel)]="adjustments[book.id!].quantity"
+          />
+        </td>
+
+        <td>
+          <input
+            type="text"
+            placeholder="Reason"
+            [(ngModel)]="adjustments[book.id!].reason"
+          />
+        </td>
+
+        <td>
+          <button (click)="updateStock(book)">Update Stock</button>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

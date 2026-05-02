@@ -94,39 +94,36 @@ export class BookListComponent implements OnInit {
   }
 
   checkout() {
-  const cart = this.bookService.getCurrentCart();
-  if (cart.length === 0) return;
+    const cart = this.bookService.getCurrentCart();
+    if (cart.length === 0) return;
 
-  this.isCheckingOut = true;
-  this.checkoutMessage = '';
-  this.checkoutError = '';
+    this.isCheckingOut = true;
+    this.checkoutMessage = '';
+    this.checkoutError = '';
 
-  const sale = {
-    items: cart.map(item => ({
-      bookId: item.book.id,
-      quantity: item.quantity
-    }))
-  };
+    const sale = {
+      items: cart.map(item => ({
+        bookId: item.book.id,
+        quantity: item.quantity
+      }))
+    };
 
-  this.bookService.checkout(sale).subscribe({
-    next: () => {
-      this.bookService.clearCart();
-      this.loadBooks();
-      this.bookService.loadSales();
+    this.bookService.checkout(sale).subscribe({
+      next: (response: any) => {
+        const savedSale = response?.data ?? response;
+        this.bookService.setLastSale(savedSale);
+        this.bookService.clearCart();
+        this.loadBooks();
+        this.bookService.loadSales();
 
-      this.checkoutMessage = 'Order placed successfully!';
-      this.isCheckingOut = false;
-      console.log('checkout success emit');
-      this.checkoutSuccess.emit();
-    },
-    error: (err) => {
-      this.checkoutError = err.error?.message || 'Checkout failed';
-      this.isCheckingOut = false;
-    }
-  });
-}
-
-
-
-
+        this.checkoutMessage = 'Order placed successfully!';
+        this.isCheckingOut = false;
+        this.checkoutSuccess.emit();
+      },
+      error: (err) => {
+        this.checkoutError = err.error?.message || 'Checkout failed';
+        this.isCheckingOut = false;
+      }
+    });
+  }
 }

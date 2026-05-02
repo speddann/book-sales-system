@@ -5,16 +5,25 @@ import { OrdersComponent } from './components/orders/orders';
 import { BookService } from './services/book';
 import { Observable, map } from 'rxjs';
 import { NewSaleComponent } from './components/new-sale/new-sale';
+import { ReceiptComponent } from './components/receipt/receipt';
+import { InventoryComponent } from './components/inventory/inventory';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [BookListComponent, OrdersComponent, AsyncPipe, NewSaleComponent],
+  imports: [
+    BookListComponent,
+    OrdersComponent,
+    NewSaleComponent,
+    ReceiptComponent,
+    InventoryComponent,
+    AsyncPipe
+  ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class AppComponent {
-  view: 'shop' | 'newSale' | 'orders'  = 'shop';
+  view: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' = 'shop';
   cartCount$: Observable<number>;
 
   constructor(private bookService: BookService) {
@@ -28,6 +37,14 @@ export class AppComponent {
   }
 
   goToNewSale() {
-    this.view = 'newSale';
+    this.view = 'new-sale';
+  }
+
+  goToReceipt() {
+    this.view = 'receipt';
+  }
+
+  goToInventory() {
+    this.view = 'inventory';
   }
 }

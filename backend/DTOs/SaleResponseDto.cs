@@ -4,6 +4,7 @@ public class SaleResponseDto
 {
     public int SaleId { get; set; }
     public DateTime Date { get; set; }
+    public string CustomerName { get; set; } = "Guest";
     public decimal TotalAmount { get; set; }
    
     public decimal Subtotal { get; set; }

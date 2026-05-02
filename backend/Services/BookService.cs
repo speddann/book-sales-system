@@ -1,5 +1,6 @@
 using Booksales.API.Common;
 using Booksales.API.Data;
+using Booksales.API.DTOs;
 using Booksales.API.Models;
 
 namespace Booksales.API.Services;
@@ -128,6 +129,49 @@ public class BookService : IBookService
             IsSuccess = true,
             Message = "Book deleted successfully",
             Data = $"Deleted Book Id: {id}"
+        };
+    }
+
+
+    public CommonResponse<Book> AdjustStock(int id, StockAdjustmentDto request)
+    {
+        if (request == null)
+            throw new BusinessException("Stock adjustment data is required");
+
+        if (request.Quantity <= 0)
+            throw new BusinessException("Quantity must be greater than zero");
+
+        if (string.IsNullOrWhiteSpace(request.Reason))
+            throw new BusinessException("Reason is required");
+
+        var book = _context.Books.FirstOrDefault(b => b.Id == id);
+
+        if (book == null)
+            throw new NotFoundException($"Book with ID {id} not found");
+
+        if (request.Type.ToLower() == "increase")
+        {
+            book.Stock += request.Quantity;
+        }
+        else if (request.Type.ToLower() == "decrease")
+        {
+            if (book.Stock < request.Quantity)
+                throw new BusinessException("Stock cannot go below zero");
+
+            book.Stock -= request.Quantity;
+        }
+        else
+        {
+            throw new BusinessException("Invalid adjustment type");
+        }
+
+        _context.SaveChanges();
+
+        return new CommonResponse<Book>
+        {
+            IsSuccess = true,
+            Message = "Stock updated successfully",
+            Data = book
         };
     }
 }

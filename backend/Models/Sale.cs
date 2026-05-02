@@ -12,6 +12,10 @@ public class Sale
 
     public decimal FinalTotal { get; set; }
 
+    public int? CustomerId { get; set; }
+
+    public Customer? Customer { get; set; }
+
     // Navigation property
     public List<SaleItem> Items { get; set; } = new List<SaleItem>();
 }

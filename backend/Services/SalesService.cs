@@ -16,7 +16,7 @@ public class SalesService : ISalesService
         _context = context;
     }
 
-    public CommonResponse<Sale> CreateSale(Sale sale)
+    public CommonResponse<SaleResponseDto> CreateSale(Sale sale)
     {
         if (sale == null)
             throw new BusinessException("Sale data is required");
@@ -40,12 +40,11 @@ public class SalesService : ISalesService
             if (book.Stock < item.Quantity)
                 throw new BusinessException($"Not enough stock for '{book.Title}'. Available: {book.Stock}");
 
-              subtotal += book.Price * item.Quantity;
-
+            subtotal += book.Price * item.Quantity;
             book.Stock -= item.Quantity;
         }
-        decimal paymentFee = 0;
 
+        decimal paymentFee = 0;
         if (sale.PaymentMethod?.ToLower() == "etransfer")
         {
             paymentFee = subtotal * 0.05m;
@@ -58,11 +57,34 @@ public class SalesService : ISalesService
         _context.Sales.Add(sale);
         _context.SaveChanges();
 
-        return new CommonResponse<Sale>
+        // Re-load items with book details so we can return a full receipt DTO
+        var savedSale = _context.Sales
+            .Include(s => s.Items)
+            .ThenInclude(i => i.Book)
+            .First(s => s.Id == sale.Id);
+
+        var dto = new SaleResponseDto
+        {
+            SaleId = savedSale.Id,
+            Date = savedSale.Date,
+            Subtotal = savedSale.Subtotal,
+            PaymentMethod = savedSale.PaymentMethod,
+            PaymentFee = savedSale.PaymentFee,
+            FinalTotal = savedSale.FinalTotal,
+            TotalAmount = savedSale.FinalTotal,
+            Items = savedSale.Items.Select(i => new SaleItemDto
+            {
+                BookTitle = i.Book!.Title,
+                Price = i.Book!.Price,
+                Quantity = i.Quantity
+            }).ToList()
+        };
+
+        return new CommonResponse<SaleResponseDto>
         {
             IsSuccess = true,
             Message = "Sale created successfully",
-            Data = sale
+            Data = dto
         };
     }
 
@@ -121,6 +143,8 @@ public class SalesService : ISalesService
             {
                 SaleId = s.Id,
                 Date = s.Date,
+                CustomerName = s.Customer != null ? s.Customer.Name : "Guest",
+                
 
                 Subtotal = s.Subtotal,
                 PaymentMethod = s.PaymentMethod,

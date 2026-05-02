@@ -1,0 +1,29 @@
+<h2>Receipt</h2>
+
+@if (sale$ | async; as sale) {
+
+  <div class="receipt-card">
+    <p><b>Order ID:</b> {{ sale.id ?? sale.saleId }}</p>
+    <p><b>Date:</b> {{ (sale.date ?? sale.saleDate) | date:'medium' }}</p>
+
+    <h3>Items</h3>
+
+    @for (item of sale.items; track item.bookTitle) {
+      <p>
+        {{ item.bookTitle }} × {{ item.quantity }}
+        → ${{ (item.price * item.quantity) | number:'1.2-2' }}
+      </p>
+    }
+
+    <hr>
+
+    <p><b>Subtotal:</b> ${{ (sale.subtotal ?? sale.totalAmount ?? 0) | number:'1.2-2' }}</p>
+    <p><b>Payment Method:</b> {{ sale.paymentMethod ?? 'N/A' }}</p>
+    <p><b>Fee:</b> ${{ (sale.paymentFee ?? 0) | number:'1.2-2' }}</p>
+
+    <h3><b>Final Total:</b> ${{ (sale.finalTotal ?? sale.totalAmount ?? sale.subtotal ?? 0) | number:'1.2-2' }}</h3>
+  </div>
+
+} @else {
+  <p>No receipt data available.</p>
+}
