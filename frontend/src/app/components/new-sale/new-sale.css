@@ -1,0 +1,48 @@
+.customer-section,
+.book-search-section,
+.sale-cart-section {
+  border: 1px solid #ddd;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.book-search-section input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+}
+
+.book-row,
+.cart-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.cart-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.payment-section {
+  border: 1px solid #ddd;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.totals {
+  margin-top: 16px;
+}
+
+.success {
+  color: green;
+}
+
+.error {
+  color: red;
+}

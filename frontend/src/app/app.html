@@ -2,6 +2,7 @@
   <h1>Book Sales Application</h1>
 
   <div class="nav-buttons">
+    <button (click)="goToNewSale()">New Sale</button>
     <button (click)="view = 'shop'">Shop</button>
     <button (click)="goToOrders()">Orders</button>
     <button class="cart-badge" (click)="view = 'shop'">
@@ -10,7 +11,7 @@
         <span class="badge">{{ count }}</span>
       }
     </button>
-  </div>
+    </div>
 </header>
 
 <main class="page-content">
@@ -20,5 +21,9 @@
 
   @if (view === 'orders') {
     <app-orders></app-orders>
+  }
+
+  @if (view === 'newSale') {
+    <app-new-sale></app-new-sale>
   }
 </main>

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BookService } from '../../services/book';
 import { Observable } from 'rxjs';
@@ -17,7 +17,7 @@ type DateFilterOption =
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [DatePipe, AsyncPipe, FormsModule],
+imports: [DatePipe, AsyncPipe, FormsModule, DecimalPipe],
   templateUrl: './orders.html',
   styleUrls: ['./orders.css']
 })
@@ -55,7 +55,7 @@ export class OrdersComponent implements OnInit {
     this.applySelectedFilter();
   }
 
-  getOrderTotal(sale: any): number {
+  getOrderSubtotalFromItems(sale: any): number {
     return (sale?.items ?? []).reduce((total: number, item: any) => {
       const price = item?.price ?? item?.book?.price ?? 0;
       const quantity = item?.quantity ?? 0;
@@ -63,8 +63,21 @@ export class OrdersComponent implements OnInit {
     }, 0);
   }
 
+  getOrderSubtotal(sale: any): number {
+    return sale?.subtotal ?? this.getOrderSubtotalFromItems(sale);
+  }
+
+  getOrderFinalTotal(sale: any): number {
+    return sale?.finalTotal ?? sale?.totalAmount ?? this.getOrderSubtotal(sale);
+  }
+
+  getOrderPaymentFee(sale: any): number {
+    return sale?.paymentFee ?? (this.getOrderFinalTotal(sale) - this.getOrderSubtotal(sale));
+  }
+
   private applySelectedFilter(): void {
     const today = new Date();
+    let range: string | undefined;
 
     switch (this.selectedDateFilter) {
       case 'last7days': {
@@ -120,13 +133,21 @@ export class OrdersComponent implements OnInit {
         break;
       }
 
+      case 'all': {
+        this.startDate = '';
+        this.endDate = '';
+        range = 'all';
+        this.activeFilterLabel = 'All Orders';
+        break;
+      }
+
       case 'custom': {
         this.activeFilterLabel = this.getCustomFilterLabel();
         break;
       }
     }
 
-    this.bookService.loadSales(this.startDate, this.endDate);
+    this.bookService.loadSales(this.startDate, this.endDate, range);
   }
 
   private getCustomFilterLabel(): string {

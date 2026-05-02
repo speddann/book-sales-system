@@ -44,6 +44,10 @@
         <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="2025" />
         2025
       </label>
+      <label class="filter-option">
+        <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="all" />
+        All Orders
+      </label>
 
       <label class="filter-option">
         <input type="radio" name="dateFilter" [(ngModel)]="selectedDateFilter" value="custom" />
@@ -76,13 +80,24 @@
     <div class="order-card">
       <p><b>Order ID:</b> {{ sale.saleId }}</p>
       <p>Placed on: {{ (sale.saleDate ?? sale.date) | date:'medium' }}</p>
-      <p class="order-total"><b>Total:</b> ${{ getOrderTotal(sale) }}</p>
+      <p><b>Subtotal:</b> ${{ getOrderSubtotal(sale) | number:'1.2-2' }}</p>
+
+      <p>
+        <b>Payment Method:</b>
+        {{ sale.paymentMethod || 'Not captured' }}
+      </p>
+
+      <p><b>E-transfer Fee:</b> ${{ getOrderPaymentFee(sale) | number:'1.2-2' }}</p>
+
+      <p class="order-total">
+        <b>Final Total:</b> ${{ getOrderFinalTotal(sale) | number:'1.2-2' }}
+      </p>
 
       @for (item of sale.items; track item.bookTitle) {
-        <div class="order-item">
-          <p>{{ item.bookTitle }} - Qty: {{ item.quantity }} - ${{ item.price * item.quantity }}</p>
-        </div>
-      }
+      <div class="order-item">
+        <p>{{ item.bookTitle }} - Qty: {{ item.quantity }} - ${{ item.price * item.quantity | number:'1.2-2' }}</p>
+      </div>
+    }
 
       <hr>
     </div>

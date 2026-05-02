@@ -1,0 +1,95 @@
+<h2>New Sale</h2>
+
+<section class="customer-section">
+  <h3>Customer</h3>
+  <p>Customer: Guest</p>
+</section>
+
+<section class="book-search-section">
+  <h3>Search Books</h3>
+
+  <input
+    type="text"
+    placeholder="Search by title or author"
+    [(ngModel)]="searchText"
+  />
+
+  <div class="book-results">
+    @for (book of filteredBooks; track book.id) {
+      <div class="book-row">
+        <div>
+          <b>{{ book.title }}</b>
+          <p>{{ book.author }}</p>
+          <p>Price: ${{ book.price }} | Stock: {{ book.stock }}</p>
+        </div>
+
+        <button (click)="addToSale(book)" [disabled]="book.stock <= 0">
+          Add
+        </button>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="sale-cart-section">
+  <h3>Current Sale</h3>
+
+  @if (saleCart.length === 0) {
+    <p>No books added yet.</p>
+  }
+
+  @for (item of saleCart; track item.book.id) {
+    <div class="cart-row">
+      <div>
+        <b>{{ item.book.title }}</b>
+        <p>
+          ${{ item.book.price }} × {{ item.quantity }}
+          = ${{ item.book.price * item.quantity }}
+        </p>
+      </div>
+
+      <div class="cart-actions">
+        <button (click)="decreaseQuantity(item.book.id!)">-</button>
+        <span>{{ item.quantity }}</span>
+        <button (click)="addToSale(item.book)">+</button>
+        <button (click)="removeItem(item.book.id!)">Remove</button>
+      </div>
+    </div>
+  }
+
+  <h3>Subtotal: ${{ getSubtotal() }}</h3>
+</section>
+
+
+
+<section class="payment-section">
+  <h3>Payment</h3>
+
+  <label>
+    Payment Method:
+    <select [(ngModel)]="paymentMethod">
+      <option value="etransfer">E-transfer</option>
+    </select>
+  </label>
+
+  <div class="totals">
+    <p>Subtotal: ${{ getSubtotal() }}</p>
+    <p>E-transfer Fee 5%: ${{ getEtransferFee() | number:'1.2-2' }}</p>
+    <h3>Final Total: ${{ getFinalTotal() | number:'1.2-2' }}</h3>
+  </div>
+
+  @if (checkoutMessage) {
+    <p class="success">{{ checkoutMessage }}</p>
+  }
+
+  @if (checkoutError) {
+    <p class="error">{{ checkoutError }}</p>
+  }
+
+  <button
+    (click)="completeSale()"
+    [disabled]="isCheckingOut || saleCart.length === 0"
+  >
+    {{ isCheckingOut ? 'Completing Sale...' : 'Complete Sale' }}
+  </button>
+</section>

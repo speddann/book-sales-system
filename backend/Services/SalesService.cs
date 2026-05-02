@@ -29,6 +29,8 @@ public class SalesService : ISalesService
         if (validationResult != "Valid")
             throw new BusinessException(validationResult);
 
+        decimal subtotal = 0;
+
         foreach (var item in sale.Items)
         {
             var book = _context.Books.FirstOrDefault(b => b.Id == item.BookId);
@@ -38,8 +40,20 @@ public class SalesService : ISalesService
             if (book.Stock < item.Quantity)
                 throw new BusinessException($"Not enough stock for '{book.Title}'. Available: {book.Stock}");
 
+              subtotal += book.Price * item.Quantity;
+
             book.Stock -= item.Quantity;
         }
+        decimal paymentFee = 0;
+
+        if (sale.PaymentMethod?.ToLower() == "etransfer")
+        {
+            paymentFee = subtotal * 0.05m;
+        }
+
+        sale.Subtotal = subtotal;
+        sale.PaymentFee = paymentFee;
+        sale.FinalTotal = subtotal + paymentFee;
 
         _context.Sales.Add(sale);
         _context.SaveChanges();
@@ -59,14 +73,13 @@ public class SalesService : ISalesService
             .ThenInclude(i => i.Book)
             .AsQueryable();
 
-            var now = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
 
-            if (!startDate.HasValue && !endDate.HasValue && string.IsNullOrWhiteSpace(range)
-
-            {
-                // Default to last 7 days if no filters provided
-                query = query.Where(s => s.Date >= now.AddDays(-7));
-            }
+        if (!startDate.HasValue && !endDate.HasValue && string.IsNullOrWhiteSpace(range))
+        {
+            // Default to last 7 days if no filters provided
+            query = query.Where(s => s.Date >= now.AddDays(-7));
+        }
 
 
         // Predefined range filter
@@ -108,7 +121,13 @@ public class SalesService : ISalesService
             {
                 SaleId = s.Id,
                 Date = s.Date,
-                TotalAmount = s.Items.Sum(i => i.Book!.Price * i.Quantity),
+
+                Subtotal = s.Subtotal,
+                PaymentMethod = s.PaymentMethod,
+                PaymentFee = s.PaymentFee,
+                FinalTotal = s.FinalTotal,
+                TotalAmount = s.FinalTotal,
+
                 Items = s.Items.Select(i => new SaleItemDto
                 {
                     BookTitle = i.Book!.Title,

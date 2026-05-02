@@ -4,16 +4,17 @@ import { BookListComponent } from './components/book-list/book-list';
 import { OrdersComponent } from './components/orders/orders';
 import { BookService } from './services/book';
 import { Observable, map } from 'rxjs';
+import { NewSaleComponent } from './components/new-sale/new-sale';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [BookListComponent, OrdersComponent, AsyncPipe],
+  imports: [BookListComponent, OrdersComponent, AsyncPipe, NewSaleComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class AppComponent {
-  view: 'shop' | 'orders' = 'shop';
+  view: 'shop' | 'newSale' | 'orders'  = 'shop';
   cartCount$: Observable<number>;
 
   constructor(private bookService: BookService) {
@@ -24,5 +25,9 @@ export class AppComponent {
 
   goToOrders() {
     this.view = 'orders';
+  }
+
+  goToNewSale() {
+    this.view = 'newSale';
   }
 }

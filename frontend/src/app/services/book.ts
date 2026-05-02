@@ -119,7 +119,7 @@
       return this.http.post(this.salesApiUrl, sale);
     }
 
-    getSales(startDate?: string, endDate?: string) {
+    getSales(startDate?: string, endDate?: string, range?: string) {
       const params: string[] = [];
 
       if (startDate) {
@@ -128,6 +128,10 @@
 
       if (endDate) {
         params.push(`endDate=${endDate}`);
+      }
+
+      if (range) {
+        params.push(`range=${range}`);
       }
 
       let url = this.salesApiUrl;
@@ -139,8 +143,8 @@
       return this.http.get<any>(url);
     }
 
-    loadSales(startDate?: string, endDate?: string) {
-      this.getSales(startDate, endDate).subscribe((data: any) => {
+    loadSales(startDate?: string, endDate?: string, range?: string) {
+      this.getSales(startDate, endDate, range).subscribe((data: any) => {
         const sales = data.data ?? data;
         this.salesSubject.next(sales);
       });
