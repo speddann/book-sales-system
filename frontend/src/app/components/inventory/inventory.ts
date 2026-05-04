@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BookService, Book } from '../../services/book';
+import { BookService, Book, InventoryHistoryItem } from '../../services/book';
 
 interface StockAdjustment {
   type: 'increase' | 'decrease';
@@ -17,19 +17,29 @@ interface StockAdjustment {
 })
 export class InventoryComponent implements OnInit {
   books = signal<Book[]>([]);
+  lowStockBooks = signal<Book[]>([]);
+  lowStockThreshold: number = 5;
+  inventoryHistory = signal<InventoryHistoryItem[]>([]);
   adjustments: { [bookId: number]: StockAdjustment } = {};
   message: string = '';
   error: string = '';
+
+  historyBookId: number | null = null;
+  historyType: string = 'all';
+  historyStartDate: string = '';
+  historyEndDate: string = '';
 
   constructor(private bookService: BookService) {}
 
   ngOnInit(): void {
     this.loadBooks();
+    this.loadInventoryHistory();
   }
 
   loadBooks(): void {
     this.bookService.getBooks().subscribe(data => {
       this.books.set(data);
+      this.loadLowStockBooks();
 
       data.forEach(book => {
         if (book.id && !this.adjustments[book.id]) {
@@ -41,6 +51,36 @@ export class InventoryComponent implements OnInit {
         }
       });
     });
+  }
+
+  loadLowStockBooks(): void {
+    const lowStock = this.books().filter(book => book.stock <= this.lowStockThreshold);
+    this.lowStockBooks.set(lowStock);
+  }
+
+  loadInventoryHistory(): void {
+    this.bookService
+      .getInventoryHistory(
+        this.historyBookId,
+        this.historyType,
+        this.historyStartDate,
+        this.historyEndDate
+      )
+      .subscribe(data => {
+        this.inventoryHistory.set(data);
+      });
+  }
+
+  applyHistoryFilter(): void {
+    this.loadInventoryHistory();
+  }
+
+  clearHistoryFilter(): void {
+    this.historyBookId = null;
+    this.historyType = 'all';
+    this.historyStartDate = '';
+    this.historyEndDate = '';
+    this.loadInventoryHistory();
   }
 
   updateStock(book: Book): void {
@@ -71,11 +111,17 @@ export class InventoryComponent implements OnInit {
         adjustment.reason = '';
 
         this.loadBooks();
+        this.loadInventoryHistory();
       },
       error: (err) => {
         this.error = err.error?.message || 'Stock update failed.';
         this.message = '';
       }
     });
+  }
+
+  formatDate(value: string): string {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
   }
 }

@@ -9,12 +9,14 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
+    
 
     // This becomes a table in DB
     public DbSet<Book> Books { get; set; }
     public DbSet<Sale> Sales { get; set; }
     public DbSet<SaleItem> SaleItems { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -10,10 +10,22 @@
     stock: number;
   }
 
-  interface ApiResponse {
+  interface ApiResponse<T> {
     isSuccess: boolean;
     message: string;
-    data: Book[];
+    data: T;
+  }
+
+  export interface InventoryHistoryItem {
+    id: number;
+    bookId: number;
+    bookTitle: string;
+    type: string;
+    quantity: number;
+    reason: string;
+    stockBefore: number;
+    stockAfter: number;
+    createdDate: string;
   }
 
   export interface CartItem {
@@ -47,7 +59,35 @@
     constructor(private http: HttpClient) {}
 
     getBooks(): Observable<Book[]> {
-      return this.http.get<ApiResponse>(this.apiUrl).pipe(map(res => res.data));
+      return this.http.get<ApiResponse<Book[]>>(this.apiUrl).pipe(map(res => res.data));
+    }
+
+    getInventoryHistory(bookId?: number | null, type?: string, startDate?: string, endDate?: string) {
+      const params: string[] = [];
+
+      if (bookId) {
+        params.push(`bookId=${bookId}`);
+      }
+
+      if (type && type !== 'all') {
+        params.push(`type=${encodeURIComponent(type)}`);
+      }
+
+      if (startDate) {
+        params.push(`startDate=${encodeURIComponent(startDate)}`);
+      }
+
+      if (endDate) {
+        params.push(`endDate=${encodeURIComponent(endDate)}`);
+      }
+
+      let url = `${this.apiUrl}/inventory-history`;
+
+      if (params.length > 0) {
+        url += `?${params.join('&')}`;
+      }
+
+      return this.http.get<InventoryHistoryItem[]>(url);
     }
 
     addBook(book: Book) {

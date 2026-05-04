@@ -12,6 +12,32 @@
   <p>No books found.</p>
 }
 
+<h2>Low Stock Alerts</h2>
+
+@if (lowStockBooks().length === 0) {
+  <p>No low stock books right now.</p>
+} @else {
+  <table class="inventory-table">
+    <thead>
+      <tr>
+        <th>Book</th>
+        <th>Author</th>
+        <th>Current Stock</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (book of lowStockBooks(); track book.id) {
+        <tr class="low-stock-row">
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td>{{ book.stock }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
 <table class="inventory-table">
   <thead>
     <tr>
@@ -62,3 +88,76 @@
     }
   </tbody>
 </table>
+
+<section class="history-section">
+  <h2>Inventory History</h2>
+
+  <div class="history-filters">
+    <label>
+      Book:
+      <select [(ngModel)]="historyBookId">
+        <option [ngValue]="null">All Books</option>
+
+        @for (book of books(); track book.id) {
+          <option [ngValue]="book.id">{{ book.title }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Type:
+      <select [(ngModel)]="historyType">
+        <option value="all">All</option>
+        <option value="increase">Increase</option>
+        <option value="decrease">Decrease</option>
+      </select>
+    </label>
+
+    <label>
+      Start Date:
+      <input type="date" [(ngModel)]="historyStartDate" />
+    </label>
+
+    <label>
+      End Date:
+      <input type="date" [(ngModel)]="historyEndDate" />
+    </label>
+
+    <button (click)="applyHistoryFilter()">Apply Filter</button>
+    <button (click)="clearHistoryFilter()">Clear</button>
+  </div>
+
+  @if (inventoryHistory().length === 0) {
+    <p>No inventory history yet.</p>
+  }
+
+  @if (inventoryHistory().length > 0) {
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Book</th>
+          <th>Type</th>
+          <th>Qty</th>
+          <th>Before</th>
+          <th>After</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (transaction of inventoryHistory(); track transaction.id) {
+          <tr>
+            <td>{{ formatDate(transaction.createdDate) }}</td>
+            <td>{{ transaction.bookTitle }}</td>
+            <td>{{ transaction.type }}</td>
+            <td>{{ transaction.quantity }}</td>
+            <td>{{ transaction.stockBefore }}</td>
+            <td>{{ transaction.stockAfter }}</td>
+            <td>{{ transaction.reason }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

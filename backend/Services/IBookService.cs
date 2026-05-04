@@ -13,9 +13,13 @@ public interface IBookService
     CommonResponse<string> DeleteBook(int id);
 
     CommonResponse<Book> AdjustStock(int id, StockAdjustmentDto request);
-  
-
+    List<InventoryTransactionDto> GetInventoryHistory(
+        int? bookId,
+        string? type,
+        DateTime? startDate,
+        DateTime? endDate
+    );
 
 }
 
-   
+

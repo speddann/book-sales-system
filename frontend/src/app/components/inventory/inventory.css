@@ -4,14 +4,26 @@
   margin-top: 20px;
 }
 
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
 .inventory-table th,
-.inventory-table td {
+.inventory-table td,
+.history-table th,
+.history-table td {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
 }
 
 .inventory-table th {
+  background-color: #f5f5f5;
+}
+
+.history-table th {
   background-color: #f5f5f5;
 }
 
@@ -28,4 +40,31 @@
 
 .error {
   color: red;
+}
+
+.history-section {
+  margin-top: 28px;
+}
+
+.history-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.history-filters input,
+.history-filters select,
+.history-filters button {
+  padding: 6px;
+}
+
+.low-stock-row {
+  background-color: #fff3f3;
+}
+
+.low-stock-row td {
+  color: #a40000;
+  font-weight: 600;
 }

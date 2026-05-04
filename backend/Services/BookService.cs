@@ -2,6 +2,7 @@ using Booksales.API.Common;
 using Booksales.API.Data;
 using Booksales.API.DTOs;
 using Booksales.API.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Booksales.API.Services;
 
@@ -149,6 +150,8 @@ public class BookService : IBookService
         if (book == null)
             throw new NotFoundException($"Book with ID {id} not found");
 
+        var stockBefore = book.Stock;
+
         if (request.Type.ToLower() == "increase")
         {
             book.Stock += request.Quantity;
@@ -165,6 +168,21 @@ public class BookService : IBookService
             throw new BusinessException("Invalid adjustment type");
         }
 
+        var stockAfter = book.Stock;
+
+        var transaction = new InventoryTransaction
+        {
+            BookId = book.Id,
+            Type = request.Type,
+            Quantity = request.Quantity,
+            Reason = request.Reason,
+            StockBefore = stockBefore,
+            StockAfter = stockAfter,
+            CreatedDate = DateTime.UtcNow
+        };
+
+        _context.InventoryTransactions.Add(transaction);
+
         _context.SaveChanges();
 
         return new CommonResponse<Book>
@@ -173,5 +191,53 @@ public class BookService : IBookService
             Message = "Stock updated successfully",
             Data = book
         };
+    }
+
+    public List<InventoryTransactionDto> GetInventoryHistory(
+        int? bookId,
+        string? type,
+        DateTime? startDate,
+        DateTime? endDate)
+    {
+        var query = _context.InventoryTransactions
+            .Include(t => t.Book)
+            .AsQueryable();
+
+        if (bookId.HasValue)
+        {
+            query = query.Where(t => t.BookId == bookId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(type) && type.ToLower() != "all")
+        {
+            var normalizedType = type.ToLower();
+            query = query.Where(t => t.Type.ToLower() == normalizedType);
+        }
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(t => t.CreatedDate >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(t => t.CreatedDate <= endDate.Value);
+        }
+
+        return query
+            .OrderByDescending(t => t.CreatedDate)
+            .Select(t => new InventoryTransactionDto
+            {
+                Id = t.Id,
+                BookId = t.BookId,
+                BookTitle = t.Book != null ? t.Book.Title : string.Empty,
+                Type = t.Type,
+                Quantity = t.Quantity,
+                StockBefore = t.StockBefore,
+                StockAfter = t.StockAfter,
+                Reason = t.Reason,
+                CreatedDate = t.CreatedDate
+            })
+            .ToList();
     }
 }

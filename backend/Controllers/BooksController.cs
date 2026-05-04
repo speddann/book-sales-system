@@ -75,4 +75,16 @@ public class BooksController : ControllerBase
         var result = _bookService.AdjustStock(id, request);
         return Ok(result);
     }
+
+    [HttpGet("inventory-history")]
+    public IActionResult GetInventoryHistory(
+        int? bookId,
+        string? type,
+        DateTime? startDate,
+        DateTime? endDate
+    )
+    {
+        var result = _bookService.GetInventoryHistory(bookId, type, startDate, endDate);
+        return Ok(result);
+    }
 }
