@@ -1,5 +1,12 @@
 <h2>Order History</h2>
 
+@if (returnSuccess) {
+  <p class="msg-success">{{ returnSuccess }}</p>
+}
+@if (returnError) {
+  <p class="msg-error">{{ returnError }}</p>
+}
+
 <div class="orders-toolbar">
   <button (click)="openFilterPanel()">Filter</button>
   <p class="active-filter"><b>Showing:</b> {{ activeFilterLabel }}</p>
@@ -77,9 +84,15 @@
   }
 
   @for (sale of sales; track sale.saleId) {
-    <div class="order-card">
-      <p><b>Order ID:</b> {{ sale.saleId }}</p>
+    <div class="order-card" [class.order-returned]="getSaleStatus(sale) === 'Returned'">
+      <div class="order-card-header">
+        <span><b>Order #{{ sale.saleId }}</b></span>
+        <span class="status-badge" [class.badge-returned]="getSaleStatus(sale) === 'Returned'" [class.badge-completed]="getSaleStatus(sale) !== 'Returned'">
+          {{ getSaleStatus(sale) }}
+        </span>
+      </div>
       <p>Placed on: {{ (sale.saleDate ?? sale.date) | date:'medium' }}</p>
+      <p><b>Customer:</b> {{ sale.customerName ?? 'Guest' }}</p>
       <p><b>Subtotal:</b> ${{ getOrderSubtotal(sale) | number:'1.2-2' }}</p>
 
       <p>
@@ -94,10 +107,18 @@
       </p>
 
       @for (item of sale.items; track item.bookTitle) {
-      <div class="order-item">
-        <p>{{ item.bookTitle }} - Qty: {{ item.quantity }} - ${{ item.price * item.quantity | number:'1.2-2' }}</p>
-      </div>
-    }
+        <div class="order-item">
+          <p>{{ item.bookTitle }} - Qty: {{ item.quantity }} - ${{ item.price * item.quantity | number:'1.2-2' }}</p>
+        </div>
+      }
+
+      @if (getSaleStatus(sale) !== 'Returned') {
+        <button class="btn-return"
+          [disabled]="returningId === sale.saleId"
+          (click)="returnOrder(sale.saleId)">
+          {{ returningId === sale.saleId ? 'Processing...' : 'Return Order' }}
+        </button>
+      }
 
       <hr>
     </div>

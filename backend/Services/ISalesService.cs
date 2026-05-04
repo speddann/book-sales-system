@@ -10,4 +10,7 @@ public interface ISalesService
     List<SaleResponseDto> GetSales(DateTime? startDate, DateTime? endDate, string? range);
     List<SalesReportItemDto> GetSalesReport();
     List<SalesReportItemDto> GetTopSellingBooks(int count = 5);
+    SalesDashboardDto GetDashboard();
+    CommonResponse<SaleResponseDto> ReturnSale(int saleId);
+    CommonResponse<Sale> ReturnSaleItems(int saleId, ReturnSaleItemsDto request);
 }

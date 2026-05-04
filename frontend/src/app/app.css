@@ -1,20 +1,116 @@
+/* ── Navbar ────────────────────────────────── */
 .navbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #ddd;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 56px;
+  background: #1a1a2e;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
 
-.nav-buttons {
+.nav-brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  user-select: none;
+}
+
+.nav-links {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 6px;
 }
 
+.nav-btn {
+  background: transparent;
+  color: rgba(255,255,255,0.88);
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.nav-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  opacity: 1;
+}
+
+/* ── Dropdown ───────────────────────────────── */
+.dropdown {
+  position: relative;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  min-width: 160px;
+  padding: 6px 0;
+  z-index: 1100;
+}
+.dropdown:hover .dropdown-menu {
+  display: flex;
+  flex-direction: column;
+}
+.dropdown-menu button {
+  background: transparent;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 0;
+  padding: 9px 16px;
+  text-align: left;
+  font-size: 14px;
+  width: 100%;
+}
+.dropdown-menu button:hover {
+  background: #f0f4ff;
+  color: var(--primary, #1565c0);
+  opacity: 1;
+}
+
+/* ── Cart button ────────────────────────────── */
+.cart-btn {
+  background: var(--primary, #1565c0) !important;
+  color: white !important;
+  border-color: transparent !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cart-btn:hover {
+  background: var(--primary-dark, #0d47a1) !important;
+  opacity: 1;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: #ef5350;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 5px;
+}
+
+/* ── Page content ───────────────────────────── */
 .page-content {
   padding: 24px;
+  min-height: calc(100vh - 56px);
 }
 
 .receipt-card {
@@ -22,19 +118,4 @@
   border-radius: 8px;
   padding: 16px;
   background: #f9f9f9;
-}
-
-.cart-badge {
-  position: relative;
-}
-
-.badge {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #222;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
 }

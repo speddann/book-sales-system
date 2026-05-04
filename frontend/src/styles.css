@@ -1,1 +1,75 @@
-/* You can add global styles to this file, and also import other style files */
+/* =============================================
+   GLOBAL DESIGN TOKENS & BASE STYLES
+   ============================================= */
+
+:root {
+  --primary:       #1565c0;
+  --primary-dark:  #0d47a1;
+  --primary-light: #e3f2fd;
+  --danger:        #c62828;
+  --success:       #2e7d32;
+  --warning:       #e65100;
+  --bg:            #f4f6f9;
+  --surface:       #ffffff;
+  --border:        #e0e0e0;
+  --text:          #1a1a1a;
+  --text-muted:    #757575;
+  --radius:        8px;
+  --shadow:        0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md:     0 4px 16px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1, h2, h3 { margin-top: 0; }
+
+/* Base button reset — components override as needed */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.1s;
+}
+button:hover    { opacity: 0.88; }
+button:active   { transform: scale(0.98); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Base input reset */
+input, select, textarea {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(21,101,192,0.12);
+}
+
+/* Utility classes */
+.text-muted { color: var(--text-muted); font-size: 12px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.btn-primary   { background: var(--primary); color: white; }
+.btn-danger    { background: var(--danger);  color: white; }
+.btn-secondary { background: #e0e0e0;        color: var(--text); }
+

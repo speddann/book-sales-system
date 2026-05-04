@@ -29,6 +29,10 @@ export class OrdersComponent implements OnInit {
   selectedDateFilter: DateFilterOption = 'last7days';
   activeFilterLabel: string = 'Last 7 Days';
 
+  returningId: number | null = null;
+  returnSuccess: string = '';
+  returnError: string = '';
+
   constructor(private bookService: BookService) {
     this.sales$ = this.bookService.sales$;
   }
@@ -166,7 +170,31 @@ export class OrdersComponent implements OnInit {
     return 'Custom Range';
   }
 
+  getSaleStatus(sale: any): string {
+    return sale?.status?.trim() || 'Completed';
+  }
+
   private formatDate(date: Date): string {
     return date.toISOString().split('T')[0];
+  }
+
+  returnOrder(saleId: number) {
+    if (!confirm(`Return entire Order #${saleId}? This will restore stock.`)) return;
+
+    this.returningId = saleId;
+    this.returnSuccess = '';
+    this.returnError = '';
+
+    this.bookService.returnSale(saleId).subscribe({
+      next: (res) => {
+        this.returnSuccess = res.message ?? `Order #${saleId} returned successfully.`;
+        this.returningId = null;
+        this.applySelectedFilter(); // refresh list
+      },
+      error: (err) => {
+        this.returnError = err?.error?.message ?? `Failed to return Order #${saleId}.`;
+        this.returningId = null;
+      }
+    });
   }
 }

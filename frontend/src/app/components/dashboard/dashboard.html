@@ -1,0 +1,80 @@
+<div class="dashboard-container">
+  <h2>Sales Dashboard</h2>
+
+  @if (loading()) {
+    <p class="loading-msg">Loading dashboard...</p>
+  }
+
+  @if (error()) {
+    <p class="error-msg">{{ error() }}</p>
+  }
+
+  @if (dashboard(); as d) {
+    <!-- Revenue Cards -->
+    <section class="cards-section">
+      <h3>Revenue</h3>
+      <div class="cards">
+        <div class="card card-blue">
+          <span class="card-label">Today</span>
+          <span class="card-value">{{ d.revenueToday | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
+        </div>
+        <div class="card card-teal">
+          <span class="card-label">This Week</span>
+          <span class="card-value">{{ d.revenueThisWeek | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
+        </div>
+        <div class="card card-green">
+          <span class="card-label">This Month</span>
+          <span class="card-value">{{ d.revenueThisMonth | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sales Count Cards -->
+    <section class="cards-section">
+      <h3>Number of Sales</h3>
+      <div class="cards">
+        <div class="card card-blue">
+          <span class="card-label">Today</span>
+          <span class="card-value">{{ d.salesToday }}</span>
+        </div>
+        <div class="card card-teal">
+          <span class="card-label">This Week</span>
+          <span class="card-value">{{ d.salesThisWeek }}</span>
+        </div>
+        <div class="card card-green">
+          <span class="card-label">This Month</span>
+          <span class="card-value">{{ d.salesThisMonth }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Books -->
+    <section class="top-books-section">
+      <h3>Top 5 Selling Books</h3>
+      @if (d.topBooks.length === 0) {
+        <p>No sales data yet.</p>
+      } @else {
+        <table class="top-books-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Units Sold</th>
+              <th>Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (book of d.topBooks; track book.title; let i = $index) {
+              <tr [class.top-row]="i === 0">
+                <td>{{ i + 1 }}</td>
+                <td>{{ book.title }}</td>
+                <td>{{ book.unitsSold }}</td>
+                <td>{{ book.revenue | currency:'CAD':'symbol-narrow':'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+</div>

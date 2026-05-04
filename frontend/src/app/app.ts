@@ -7,6 +7,7 @@ import { Observable, map } from 'rxjs';
 import { NewSaleComponent } from './components/new-sale/new-sale';
 import { ReceiptComponent } from './components/receipt/receipt';
 import { InventoryComponent } from './components/inventory/inventory';
+import { DashboardComponent } from './components/dashboard/dashboard';
 
 @Component({
   selector: 'app-root',
@@ -17,13 +18,14 @@ import { InventoryComponent } from './components/inventory/inventory';
     NewSaleComponent,
     ReceiptComponent,
     InventoryComponent,
+    DashboardComponent,
     AsyncPipe
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class AppComponent {
-  view: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' = 'shop';
+  view: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' | 'dashboard' = 'shop';
   cartCount$: Observable<number>;
 
   constructor(private bookService: BookService) {
@@ -46,5 +48,9 @@ export class AppComponent {
 
   goToInventory() {
     this.view = 'inventory';
+  }
+
+  goToDashboard() {
+    this.view = 'dashboard';
   }
 }

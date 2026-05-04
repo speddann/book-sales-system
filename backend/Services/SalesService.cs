@@ -74,9 +74,11 @@ public class SalesService : ISalesService
             TotalAmount = savedSale.FinalTotal,
             Items = savedSale.Items.Select(i => new SaleItemDto
             {
+                SaleItemId = i.Id,
                 BookTitle = i.Book!.Title,
                 Price = i.Book!.Price,
-                Quantity = i.Quantity
+                Quantity = i.Quantity,
+                ReturnedQuantity = i.ReturnedQuantity
             }).ToList()
         };
 
@@ -144,6 +146,7 @@ public class SalesService : ISalesService
                 SaleId = s.Id,
                 Date = s.Date,
                 CustomerName = s.Customer != null ? s.Customer.Name : "Guest",
+                Status = s.Status,
                 
 
                 Subtotal = s.Subtotal,
@@ -154,9 +157,11 @@ public class SalesService : ISalesService
 
                 Items = s.Items.Select(i => new SaleItemDto
                 {
+                    SaleItemId = i.Id,
                     BookTitle = i.Book!.Title,
                     Price = i.Book!.Price,
-                    Quantity = i.Quantity
+                    Quantity = i.Quantity,
+                    ReturnedQuantity = i.ReturnedQuantity
                 }).ToList()
             })
             .ToList();
@@ -188,5 +193,158 @@ public class SalesService : ISalesService
             .OrderByDescending(x => x.TotalSold)
             .Take(count)
             .ToList();
+    }
+
+    public CommonResponse<SaleResponseDto> ReturnSale(int saleId)
+    {
+        var sale = _context.Sales
+            .Include(s => s.Items)
+            .ThenInclude(i => i.Book)
+            .FirstOrDefault(s => s.Id == saleId);
+
+        if (sale == null)
+            throw new NotFoundException($"Sale with ID {saleId} not found");
+
+        if (sale.Status == "Returned")
+            throw new BusinessException("This order has already been returned.");
+
+        // Reverse stock for each item
+        foreach (var item in sale.Items)
+        {
+            if (item.Book != null)
+                item.Book.Stock += item.Quantity;
+        }
+
+        sale.Status = "Returned";
+        _context.SaveChanges();
+
+        return new CommonResponse<SaleResponseDto>
+        {
+            IsSuccess = true,
+            Message = $"Order #{saleId} has been returned. Stock restored.",
+            Data = new SaleResponseDto
+            {
+                SaleId = sale.Id,
+                Date = sale.Date,
+                Status = sale.Status,
+                Subtotal = sale.Subtotal,
+                PaymentMethod = sale.PaymentMethod,
+                PaymentFee = sale.PaymentFee,
+                FinalTotal = sale.FinalTotal,
+                TotalAmount = sale.FinalTotal,
+                Items = sale.Items.Select(i => new SaleItemDto
+                {
+                    SaleItemId = i.Id,
+                    BookTitle = i.Book!.Title,
+                    Price = i.Book!.Price,
+                    Quantity = i.Quantity,
+                    ReturnedQuantity = i.ReturnedQuantity
+                }).ToList()
+            }
+        };
+    }
+
+    public CommonResponse<Sale> ReturnSaleItems(int saleId, ReturnSaleItemsDto request)
+    {
+        if (request == null || request.Items == null || request.Items.Count == 0)
+            throw new BusinessException("Return items are required");
+
+        var sale = _context.Sales
+            .Include(s => s.Items)
+            .ThenInclude(i => i.Book)
+            .FirstOrDefault(s => s.Id == saleId);
+
+        if (sale == null)
+            throw new NotFoundException($"Sale with ID {saleId} not found");
+
+        if (sale.Status == "Returned")
+            throw new BusinessException("This sale is already fully returned");
+
+        foreach (var returnItem in request.Items)
+        {
+            if (returnItem.Quantity <= 0)
+                throw new BusinessException("Return quantity must be greater than zero");
+
+            if (string.IsNullOrWhiteSpace(returnItem.Reason))
+                throw new BusinessException("Return reason is required");
+
+            var saleItem = sale.Items.FirstOrDefault(i => i.Id == returnItem.SaleItemId);
+
+            if (saleItem == null)
+                throw new NotFoundException($"Sale item with ID {returnItem.SaleItemId} not found");
+
+            var remainingReturnableQuantity = saleItem.Quantity - saleItem.ReturnedQuantity;
+
+            if (returnItem.Quantity > remainingReturnableQuantity)
+                throw new BusinessException(
+                    $"Cannot return {returnItem.Quantity} for '{saleItem.Book?.Title}'. Only {remainingReturnableQuantity} can be returned.");
+
+            saleItem.ReturnedQuantity += returnItem.Quantity;
+
+            if (saleItem.Book != null)
+            {
+                saleItem.Book.Stock += returnItem.Quantity;
+            }
+        }
+
+        var allItemsReturned = sale.Items.All(i => i.ReturnedQuantity == i.Quantity);
+        var anyItemsReturned = sale.Items.Any(i => i.ReturnedQuantity > 0);
+
+        if (allItemsReturned)
+            sale.Status = "Returned";
+        else if (anyItemsReturned)
+            sale.Status = "PartiallyReturned";
+        else
+            sale.Status = "Completed";
+
+        _context.SaveChanges();
+
+        return new CommonResponse<Sale>
+        {
+            IsSuccess = true,
+            Message = "Return processed successfully",
+            Data = sale
+        };
+    }
+
+    public SalesDashboardDto GetDashboard()
+    {
+        var now = DateTime.UtcNow;
+        var todayStart    = now.Date;
+        var weekStart     = todayStart.AddDays(-(int)now.DayOfWeek);
+        var monthStart    = new DateTime(now.Year, now.Month, 1);
+
+        var sales = _context.Sales
+            .Include(s => s.Items)
+            .ThenInclude(i => i.Book)
+            .Where(s => s.Status != "Returned")
+            .ToList();
+
+        var topBooks = _context.SaleItems
+            .Include(si => si.Book)
+            .Where(si => si.Sale!.Status != "Returned")
+            .GroupBy(si => new { si.BookId, si.Book!.Title, si.Book!.Price })
+            .Select(g => new TopBookDto
+            {
+                Title     = g.Key.Title,
+                UnitsSold = g.Sum(i => i.Quantity),
+                Revenue   = g.Sum(i => i.Quantity * g.Key.Price)
+            })
+            .OrderByDescending(x => x.UnitsSold)
+            .Take(5)
+            .ToList();
+
+        return new SalesDashboardDto
+        {
+            RevenueToday     = sales.Where(s => s.Date >= todayStart).Sum(s => s.FinalTotal),
+            RevenueThisWeek  = sales.Where(s => s.Date >= weekStart).Sum(s => s.FinalTotal),
+            RevenueThisMonth = sales.Where(s => s.Date >= monthStart).Sum(s => s.FinalTotal),
+
+            SalesToday     = sales.Count(s => s.Date >= todayStart),
+            SalesThisWeek  = sales.Count(s => s.Date >= weekStart),
+            SalesThisMonth = sales.Count(s => s.Date >= monthStart),
+
+            TopBooks = topBooks
+        };
     }
 }

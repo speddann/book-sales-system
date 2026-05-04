@@ -124,4 +124,8 @@ export class InventoryComponent implements OnInit {
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
   }
+
+  getReorderQty(stock: number): number {
+    return Math.max(20 - stock, 10);
+  }
 }

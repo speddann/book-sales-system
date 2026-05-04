@@ -16,6 +16,8 @@ public class Sale
 
     public Customer? Customer { get; set; }
 
+    public string Status { get; set; } = "Completed";
+
     // Navigation property
     public List<SaleItem> Items { get; set; } = new List<SaleItem>();
 }

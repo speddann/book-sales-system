@@ -226,6 +226,27 @@
       return this.http.get<any>(`http://localhost:5145/api/customers/${customerId}/summary`);
     }
 
+    getDashboard() {
+      return this.http.get<SalesDashboard>(`${this.salesApiUrl}/dashboard`);
+    }
 
+    returnSale(saleId: number) {
+      return this.http.post<any>(`${this.salesApiUrl}/${saleId}/return`, {});
+    }
+  }
 
+  export interface TopBook {
+    title: string;
+    unitsSold: number;
+    revenue: number;
+  }
+
+  export interface SalesDashboard {
+    revenueToday: number;
+    revenueThisWeek: number;
+    revenueThisMonth: number;
+    salesToday: number;
+    salesThisWeek: number;
+    salesThisMonth: number;
+    topBooks: TopBook[];
   }

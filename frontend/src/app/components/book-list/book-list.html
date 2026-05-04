@@ -1,115 +1,150 @@
-<h2>BOOK SALES APPLICATION</h2>
+<div class="shop-page">
 
-<div class="nav-bar">
-  <button (click)="showAddForm = true">+ Add Book</button>
-</div>
-
-@if (showAddForm || editingBook) {
-  <h2>{{ editingBook ? 'Edit Book' : 'Add Book' }}</h2>
-  <div class="form">
-    @if (editingBook) {
-      <input [(ngModel)]="editingBook.title" placeholder="Title" />
-      <input [(ngModel)]="editingBook.author" placeholder="Author" />
-      <input [(ngModel)]="editingBook.price" type="number" placeholder="Price" />
-      <input [(ngModel)]="editingBook.stock" type="number" placeholder="Stock" />
-      <button (click)="updateBook()">Update</button>
-      <button (click)="editingBook = null">Cancel</button>
-    } @else {
-      <input [(ngModel)]="newBook.title" placeholder="Title" />
-      <input [(ngModel)]="newBook.author" placeholder="Author" />
-      <input [(ngModel)]="newBook.price" type="number" placeholder="Price" />
-      <input [(ngModel)]="newBook.stock" type="number" placeholder="Stock" />
-      <button (click)="addBook(); showAddForm = false">Add Book</button>
-      <button (click)="showAddForm = false">Cancel</button>
-    }
+  <!-- Top bar -->
+  <div class="shop-header">
+    <h2>Browse Books</h2>
+    <button class="btn-primary" (click)="showAddForm = true">+ Add Book</button>
   </div>
-}
 
-<hr>
+  <!-- Add / Edit form -->
+  @if (showAddForm || editingBook) {
+    <div class="card form-card">
+      <h3>{{ editingBook ? 'Edit Book' : 'Add New Book' }}</h3>
+      <div class="form-grid">
+        @if (editingBook) {
+          <input [(ngModel)]="editingBook.title"  placeholder="Title" />
+          <input [(ngModel)]="editingBook.author" placeholder="Author" />
+          <input [(ngModel)]="editingBook.price"  type="number" placeholder="Price" />
+          <input [(ngModel)]="editingBook.stock"  type="number" placeholder="Stock" />
+          <div class="form-actions">
+            <button class="btn-primary"    (click)="updateBook()">Save Changes</button>
+            <button class="btn-secondary"  (click)="editingBook = null">Cancel</button>
+          </div>
+        } @else {
+          <input [(ngModel)]="newBook.title"  placeholder="Title" />
+          <input [(ngModel)]="newBook.author" placeholder="Author" />
+          <input [(ngModel)]="newBook.price"  type="number" placeholder="Price" />
+          <input [(ngModel)]="newBook.stock"  type="number" placeholder="Stock" />
+          <div class="form-actions">
+            <button class="btn-primary"   (click)="addBook(); showAddForm = false">Add Book</button>
+            <button class="btn-secondary" (click)="showAddForm = false">Cancel</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
 
-<div class="shop-layout">
-  <div class="books-section">
-    <h2>Books</h2>
+  <div class="shop-layout">
+    <!-- Book Grid — click a card to open detail modal -->
+    <div class="books-section">
+      <div class="book-container">
+        @for (book of books(); track book.id) {
+          <div class="book-card" (click)="openDetail(book)">
+            <div class="book-image-placeholder">
+              <span>No Photo Yet</span>
+            </div>
+            <div class="book-card-body">
+              <h3 class="book-title">{{ book.title }}</h3>
+              <p class="book-author">{{ book.author || 'Unknown Author' }}</p>
+              <div class="book-card-footer">
+                <span class="book-price">${{ book.price }}</span>
+                <span class="stock-badge"
+                  [class.in-stock]="book.stock > 10"
+                  [class.low-stock]="book.stock > 0 && book.stock <= 10"
+                  [class.out-of-stock]="book.stock === 0">
+                  {{ book.stock > 0 ? book.stock + ' left' : 'Out of Stock' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
 
-    <div class="book-container">
-      @for (book of books(); track book.id) {
-        <div class="book-card">
-          <h3>{{ book.title }}</h3>
-          <p><b>Author:</b> {{ book.author || 'N/A' }}</p>
-          <p><b>Price:</b> ${{ book.price }}</p>
-          <p><b>Stock:</b> {{ book.stock }}</p>
+    <!-- Sticky cart panel -->
+    <div class="cart-section">
+      <h2>Cart</h2>
 
-          <button (click)="editBook(book)">Edit</button>
-          <button (click)="deleteBook(book.id!)">Delete</button>
-          <button (click)="addToCart(book)">Add to Cart</button>
-        </div>
+      @if (cart$ | async; as cart) {
+        @if (cart.length === 0) {
+          <p class="empty-cart-msg">Your cart is empty</p>
+        }
+
+        @for (item of cart; track item.book.id) {
+          <div class="cart-item">
+            <div class="cart-item-header">
+              <b>{{ item.book.title }}</b>
+            </div>
+            <div class="cart-item-row">
+              <span class="text-muted">${{ item.book.price }} each</span>
+              <div class="cart-qty-controls">
+                <button class="qty-btn" (click)="decreaseCartItem(item)">&#8722;</button>
+                <span>{{ item.quantity }}</span>
+                <button class="qty-btn" (click)="addToCart(item.book)">+</button>
+              </div>
+              <span class="cart-item-total">${{ (item.book.price * item.quantity) | number:'1.2-2' }}</span>
+              <button class="remove-cart-btn" (click)="removeItemFromCart(item)">&times;</button>
+            </div>
+          </div>
+        }
+
+        @if (cart.length > 0) {
+          <div class="cart-total-row">
+            <span>Total</span>
+            <b>${{ getTotalPrice(cart) | number:'1.2-2' }}</b>
+          </div>
+          <button class="checkout-btn" (click)="checkout()" [disabled]="isCheckingOut">
+            {{ isCheckingOut ? 'Placing Order...' : 'Checkout' }}
+          </button>
+        }
+      }
+
+      @if (checkoutMessage) {
+        <p class="success-message">{{ checkoutMessage }}</p>
+      }
+      @if (checkoutError) {
+        <p class="error-message">{{ checkoutError }}</p>
       }
     </div>
   </div>
 
-  <div class="cart-section">
-    <h2>Cart</h2>
+  <!-- Book Detail Modal -->
+  @if (selectedBook) {
+    <div class="modal-overlay" (click)="closeDetail()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="closeDetail()">&#10005;</button>
 
-    @if (cart$ | async; as cart) {
-      @if (cart.length === 0) {
-        <p>Your cart is empty 🛒</p>
-      }
-
-      @for (item of cart; track item.book.id) {
-        <div class="cart-item">
-          <p><b>{{ item.book.title }}</b></p>
-          <p>Price: ${{ item.book.price }}</p>
-          <p>Quantity: {{ item.quantity }}</p>
-          <p>Total: ${{ item.book.price * item.quantity }}</p>
-
-          <button (click)="addToCart(item.book)">+</button>
-          <button (click)="decreaseCartItem(item)">-</button>
-          <button (click)="removeItemFromCart(item)">Remove</button>
+        <div class="modal-image-placeholder">
+          <span>Photo Coming Soon</span>
         </div>
-      }
 
-      @if (cart.length > 0) {
-        <h3>Total: ${{ getTotalPrice(cart) }}</h3>
-        <button (click)="checkout()" [disabled]="isCheckingOut">
-          {{ isCheckingOut ? 'Placing Order...' : 'Checkout' }}
-        </button>
-      }
-    }
+        <div class="modal-body">
+          <h2 class="modal-title">{{ selectedBook.title }}</h2>
+          <p class="modal-author">by {{ selectedBook.author || 'Unknown Author' }}</p>
 
-    @if (checkoutMessage) {
-      <p class="success-message">{{ checkoutMessage }}</p>
-    }
+          <div class="modal-meta">
+            <span class="modal-price">${{ selectedBook.price }}</span>
+            <span class="stock-badge"
+              [class.in-stock]="selectedBook.stock > 10"
+              [class.low-stock]="selectedBook.stock > 0 && selectedBook.stock <= 10"
+              [class.out-of-stock]="selectedBook.stock === 0">
+              {{ selectedBook.stock > 0 ? selectedBook.stock + ' in stock' : 'Out of Stock' }}
+            </span>
+          </div>
 
-    @if (checkoutError) {
-      <p class="error-message">{{ checkoutError }}</p>
-    }
-  </div>
-</div>
+          <button class="btn-add-cart"
+            (click)="addToCart(selectedBook); closeDetail()"
+            [disabled]="selectedBook.stock === 0">
+            Add to Cart
+          </button>
 
-@if (showOrders) {
-  <div class="orders-panel">
-    <h2>Order History</h2>
-    @if (sales$ | async; as sales) {
-      @if (sales.length === 0) {
-        <p>No orders yet.</p>
-      }
-      @for (sale of sales; track sale.saleId) {
-        <div class="order">
-          <p><b>Order ID:</b> {{ sale.saleId }}</p>
-          <p><b>Date:</b> {{ sale.date | date:'medium' }}</p>
-          <p><b>Total:</b> ${{ sale.totalAmount }}</p>
-          @for (item of sale.items; track item.bookTitle) {
-            <p>{{ item.bookTitle }} — Qty: {{ item.quantity }} — ${{ item.price }}</p>
-          }
-          <hr>
+          <div class="modal-admin-actions">
+            <button class="btn-edit" (click)="editBook(selectedBook); closeDetail()">Edit Book</button>
+            <button class="btn-delete" (click)="deleteBook(selectedBook.id!); closeDetail()">Delete</button>
+          </div>
         </div>
-      }
-    }
-  </div>
-}
-
-@if (showOrders && (sales$ | async); as sales) {
-  @if (sales.length > 0) {
-    <p>End of Orders 🛒</p>
+      </div>
+    </div>
   }
-}
+
+</div>

@@ -12,5 +12,7 @@ public class SaleResponseDto
     public decimal PaymentFee { get; set; }
     public decimal FinalTotal { get; set; }
 
+    public string Status { get; set; } = "Completed";
+
     public List<SaleItemDto> Items { get; set; } = new();
 }

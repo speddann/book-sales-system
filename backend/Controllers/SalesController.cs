@@ -53,5 +53,31 @@ public class SalesController : ControllerBase
         var topBooks = _salesService.GetTopSellingBooks();
         return Ok(topBooks);
     }
+
+    // GET: api/sales/dashboard
+    [HttpGet("dashboard")]
+    public IActionResult GetDashboard()
+    {
+        var result = _salesService.GetDashboard();
+        return Ok(result);
+    }
+
+    // POST: api/sales/{id}/return
+    [HttpPost("{id}/return")]
+    public IActionResult ReturnSale(int id)
+    {
+        var result = _salesService.ReturnSale(id);
+        return Ok(result);
+    }
+
+    [HttpPost("{saleId:int}/return-items")]
+    public IActionResult ReturnSaleItems(int saleId, ReturnSaleItemsDto request)
+    {
+        if (saleId <= 0)
+            throw new BusinessException("Sale id must be greater than zero");
+
+        var result = _salesService.ReturnSaleItems(saleId, request);
+        return Ok(result);
+    }
 }
 

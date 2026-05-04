@@ -1,18 +1,38 @@
 <header class="navbar">
-  <h1>Book Sales Application</h1>
+  <div class="nav-brand" (click)="view = 'shop'">Book Sales</div>
 
-  <div class="nav-buttons">
-    <button (click)="goToNewSale()">New Sale</button>
-    <button (click)="view = 'shop'">Shop</button>
-    <button (click)="goToOrders()">Orders</button>
-    <button (click)="goToInventory()">Inventory</button>
-    <button class="cart-badge" (click)="view = 'shop'">
+  <nav class="nav-links">
+    <!-- Sales dropdown -->
+    <div class="dropdown">
+      <button class="nav-btn">Sales &#9662;</button>
+      <div class="dropdown-menu">
+        <button (click)="goToNewSale()">New Sale</button>
+        <button (click)="goToOrders()">Orders</button>
+      </div>
+    </div>
+
+    <!-- Shop -->
+    <button class="nav-btn" (click)="view = 'shop'">Shop</button>
+
+    <!-- Operations dropdown -->
+    <div class="dropdown">
+      <button class="nav-btn">Operations &#9662;</button>
+      <div class="dropdown-menu">
+        <button (click)="goToInventory()">Inventory</button>
+        <button (click)="goToDashboard()">Dashboard</button>
+      </div>
+    </div>
+
+    <!-- Cart -->
+    <button class="nav-btn cart-btn" (click)="view = 'shop'">
       Cart
       @if (cartCount$ | async; as count) {
-        <span class="badge">{{ count }}</span>
+        @if (count > 0) {
+          <span class="badge">{{ count }}</span>
+        }
       }
     </button>
-    </div>
+  </nav>
 </header>
 
 <main class="page-content">
@@ -34,5 +54,9 @@
 
   @if (view === 'inventory') {
     <app-inventory></app-inventory>
+  }
+
+  @if (view === 'dashboard') {
+    <app-dashboard></app-dashboard>
   }
 </main>

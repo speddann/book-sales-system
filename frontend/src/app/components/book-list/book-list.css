@@ -1,3 +1,29 @@
+/* ── Page layout ──────────────────────────────────── */
+.shop-page { max-width: 1400px; }
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.shop-header h2 { margin: 0; }
+
+/* Form card */
+.form-card { margin-bottom: 24px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.form-actions {
+  display: flex;
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+/* ── Shop split layout ────────────────────────────── */
 .shop-layout {
   display: flex;
   gap: 24px;
@@ -5,79 +31,306 @@
 }
 
 .books-section {
-  flex: 3;
-}
-
-.cart-section {
   flex: 1;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 16px;
-  background: #fff;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
-  position: sticky;
-  top: 20px;
+  min-width: 0;
 }
 
 .book-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
 }
 
+/* ── Book card ────────────────────────────────────── */
 .book-card {
-  border: 1px solid #ccc;
-  padding: 15px;
-  width: 220px;
-  border-radius: 10px;
-  box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
   background: white;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.book-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
 }
 
-.cart-item {
-  border-bottom: 1px solid #ddd;
-  padding: 10px 0;
-}
-
-.nav-bar {
+.book-image-placeholder {
+  width: 100%;
+  height: 130px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+  align-items: center;
+  justify-content: center;
+  color: #90a4ae;
+  font-size: 12px;
 }
 
-.orders-panel {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 10px;
+.book-card-body { padding: 14px; }
+
+.book-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.book-author {
+  font-size: 12px;
+  color: var(--text-muted, #757575);
+  margin: 0 0 10px 0;
+}
+
+.book-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.book-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary, #1565c0);
+}
+
+/* Stock badges — shared between card + modal */
+.stock-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.stock-badge.in-stock    { background: #e8f5e9; color: #2e7d32; }
+.stock-badge.low-stock   { background: #fff3e0; color: #e65100; }
+.stock-badge.out-of-stock{ background: #ffebee; color: #c62828; }
+
+/* ── Sticky cart panel ────────────────────────────── */
+.cart-section {
+  width: 300px;
+  flex-shrink: 0;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 12px;
   padding: 20px;
-  margin-top: 20px;
+  background: white;
+  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.06));
+  position: sticky;
+  top: 72px;
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+}
+.cart-section h2 { margin: 0 0 16px 0; }
+
+.empty-cart-msg {
+  color: #9e9e9e;
+  text-align: center;
+  padding: 20px 0;
 }
 
-.order {
-  margin-bottom: 10px;
+.cart-item { border-bottom: 1px solid #f0f0f0; padding: 10px 0; }
+.cart-item-header { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+
+.cart-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
 }
+
+.cart-qty-controls { display: flex; align-items: center; gap: 6px; }
+
+.qty-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 700;
+}
+.qty-btn:hover { background: #bdbdbd; opacity: 1; }
+
+.cart-item-total {
+  font-weight: 600;
+  color: var(--primary, #1565c0);
+  margin-left: auto;
+  font-size: 13px;
+}
+
+.remove-cart-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #bdbdbd;
+  font-size: 14px;
+  border-radius: 4px;
+}
+.remove-cart-btn:hover { background: #ffebee; color: #c62828; opacity: 1; }
+
+.text-muted { color: #9e9e9e; }
+
+.cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 15px;
+}
+
+.checkout-btn {
+  width: 100%;
+  background: var(--success, #2e7d32);
+  color: white;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+.checkout-btn:hover:not(:disabled) { background: #1b5e20; opacity: 1; }
 
 .success-message {
-  color: green;
-  font-weight: bold;
+  color: var(--success, #2e7d32);
+  background: #e8f5e9;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   margin-top: 10px;
 }
-
 .error-message {
-  color: red;
-  font-weight: bold;
+  color: var(--danger, #c62828);
+  background: #ffebee;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   margin-top: 10px;
 }
 
-button {
-  background-color: red;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 5px;
-  cursor: pointer;
+/* ── Book Detail Modal ────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
 }
 
-button:hover {
-  background-color: darkred;
+.modal-card {
+  background: white;
+  border-radius: 16px;
+  width: 420px;
+  max-width: calc(100vw - 40px);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.08);
+  color: #424242;
+  font-size: 16px;
+  border-radius: 50%;
+  z-index: 1;
+}
+.modal-close:hover { background: rgba(0,0,0,0.15); opacity: 1; }
+
+.modal-image-placeholder {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(135deg, #e3f2fd, #90caf9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5c8dd6;
+  font-size: 14px;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-body { padding: 20px 24px 24px; }
+
+.modal-title { font-size: 22px; margin: 0 0 4px 0; }
+.modal-author { color: #757575; margin: 0 0 16px 0; font-size: 14px; }
+
+.modal-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-price {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary, #1565c0);
+}
+
+.btn-add-cart {
+  width: 100%;
+  background: var(--primary, #1565c0);
+  color: white;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.btn-add-cart:hover:not(:disabled) { background: var(--primary-dark, #0d47a1); opacity: 1; }
+.btn-add-cart:disabled { background: #e0e0e0; color: #9e9e9e; }
+
+.modal-admin-actions {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 14px;
+}
+
+.btn-edit {
+  flex: 1;
+  background: #e0e0e0;
+  color: #424242;
+  padding: 8px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.btn-edit:hover { background: #bdbdbd; opacity: 1; }
+
+.btn-delete {
+  flex: 1;
+  background: #ffebee;
+  color: #c62828;
+  padding: 8px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.btn-delete:hover { background: #ffcdd2; opacity: 1; }
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .shop-layout { flex-direction: column; }
+  .cart-section { width: 100%; position: static; }
+  .book-container { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 }

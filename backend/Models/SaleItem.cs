@@ -10,6 +10,7 @@ public class SaleItem
     public Book? Book { get; set; }
 
     public int Quantity { get; set; }
+    public int ReturnedQuantity { get; set; } = 0;
 
     public int SaleId { get; set; }
     [JsonIgnore]

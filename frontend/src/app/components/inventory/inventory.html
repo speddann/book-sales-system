@@ -38,6 +38,34 @@
   </table>
 }
 
+<h2>Reorder Suggestions</h2>
+
+@if (lowStockBooks().length === 0) {
+  <p>All books are sufficiently stocked.</p>
+} @else {
+  <table class="inventory-table">
+    <thead>
+      <tr>
+        <th>Book</th>
+        <th>Current Stock</th>
+        <th>Suggested Reorder</th>
+        <th>Reason</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (book of lowStockBooks(); track book.id) {
+        <tr class="low-stock-row">
+          <td>{{ book.title }}</td>
+          <td>{{ book.stock }}</td>
+          <td>{{ getReorderQty(book.stock) }}</td>
+          <td>Stock is below {{ lowStockThreshold }} — reorder recommended</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
 <table class="inventory-table">
   <thead>
     <tr>

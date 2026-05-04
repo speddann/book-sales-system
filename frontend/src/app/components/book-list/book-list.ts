@@ -1,14 +1,14 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Observable } from 'rxjs';
 import { BookService, Book, CartItem } from '../../services/book';
 
 @Component({
   selector: 'app-book-list',
   standalone: true,
-  imports: [FormsModule, DatePipe, AsyncPipe],
+  imports: [FormsModule, AsyncPipe, DecimalPipe],
   templateUrl: './book-list.html',
   styleUrls: ['./book-list.css']
 })
@@ -26,7 +26,8 @@ export class BookListComponent implements OnInit {
   sales$: Observable<any[]>;
   isCheckingOut: boolean = false;
   checkoutMessage: string = '';
-  checkoutError: string = ''; 
+  checkoutError: string = '';
+  selectedBook: Book | null = null;
 
   constructor(private bookService: BookService) {
     this.sales$ = this.bookService.sales$;
@@ -77,6 +78,14 @@ export class BookListComponent implements OnInit {
 
   removeFromCart(id: number) {
     this.bookService.removeFromCart(id);
+  }
+
+  openDetail(book: Book) {
+    this.selectedBook = book;
+  }
+
+  closeDetail() {
+    this.selectedBook = null;
   }
 
   removeItemFromCart(item: CartItem) {
