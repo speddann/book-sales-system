@@ -4,26 +4,33 @@
   <nav class="nav-links">
     <!-- Sales dropdown -->
     <div class="dropdown">
-      <button class="nav-btn">Sales &#9662;</button>
-      <div class="dropdown-menu">
-        <button (click)="goToNewSale()">New Sale</button>
-        <button (click)="goToOrders()">Orders</button>
-      </div>
+      <button class="nav-btn" (click)="toggleSales()">Sales &#9662;</button>
+      @if (isSalesOpen) {
+        <div class="dropdown-menu">
+          <button (click)="goToNewSale()">New Sale</button>
+          <button (click)="goToOrders()">Orders</button>
+        </div>
+      }
     </div>
 
     <!-- Shop -->
-    <button class="nav-btn" (click)="setView('shop')">Shop</button>
+    <button class="nav-btn" (click)="setView('shop'); closeSales(); closeOperations()">Shop</button>
 
     <!-- Operations dropdown -->
     <div class="dropdown">
-      <button class="nav-btn">Operations &#9662;</button>
-      <div class="dropdown-menu">
-        <button (click)="setView('add-book')">Add Book</button>
-        <button (click)="setView('manage-books')">Manage Books</button>
-        <button (click)="setView('customers')">Customers</button>
-        <button (click)="setView('inventory')">Inventory</button>
-        <button (click)="setView('dashboard')">Dashboard</button>
-      </div>
+      <button class="nav-btn" (click)="toggleOperations()">
+        Operations &#9662;
+      </button>
+
+      @if (isOperationsOpen) {
+        <div class="dropdown-menu">
+          <button (click)="setView('add-book'); closeOperations()">Add Book</button>
+          <button (click)="setView('manage-books'); closeOperations()">Manage Books</button>
+          <button (click)="setView('inventory'); closeOperations()">Inventory</button>
+          <button (click)="setView('customers'); closeOperations()">Customers</button>
+          <button (click)="setView('dashboard'); closeOperations()">Dashboard</button>
+        </div>
+      }
     </div>
 
     <!-- Cart -->
