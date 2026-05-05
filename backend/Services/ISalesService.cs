@@ -13,4 +13,5 @@ public interface ISalesService
     SalesDashboardDto GetDashboard();
     CommonResponse<SaleResponseDto> ReturnSale(int saleId);
     CommonResponse<Sale> ReturnSaleItems(int saleId, ReturnSaleItemsDto request);
+    CommonResponse<object> EmailReceipt(int saleId, string email);
 }

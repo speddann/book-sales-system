@@ -1,5 +1,5 @@
 <header class="navbar">
-  <div class="nav-brand" (click)="view = 'shop'">Book Sales</div>
+  <div class="nav-brand" (click)="setView('shop')">Book Sales</div>
 
   <nav class="nav-links">
     <!-- Sales dropdown -->
@@ -12,19 +12,22 @@
     </div>
 
     <!-- Shop -->
-    <button class="nav-btn" (click)="view = 'shop'">Shop</button>
+    <button class="nav-btn" (click)="setView('shop')">Shop</button>
 
     <!-- Operations dropdown -->
     <div class="dropdown">
       <button class="nav-btn">Operations &#9662;</button>
       <div class="dropdown-menu">
-        <button (click)="goToInventory()">Inventory</button>
-        <button (click)="goToDashboard()">Dashboard</button>
+        <button (click)="setView('add-book')">Add Book</button>
+        <button (click)="setView('manage-books')">Manage Books</button>
+        <button (click)="setView('customers')">Customers</button>
+        <button (click)="setView('inventory')">Inventory</button>
+        <button (click)="setView('dashboard')">Dashboard</button>
       </div>
     </div>
 
     <!-- Cart -->
-    <button class="nav-btn cart-btn" (click)="view = 'shop'">
+    <button class="nav-btn cart-btn" (click)="setView('shop')">
       Cart
       @if (cartCount$ | async; as count) {
         @if (count > 0) {
@@ -36,27 +39,39 @@
 </header>
 
 <main class="page-content">
-  @if (view === 'shop') {
+  @if (currentView === 'shop') {
     <app-book-list (checkoutSuccess)="goToReceipt()"></app-book-list>
   }
 
-  @if (view === 'orders') {
+  @if (currentView === 'add-book') {
+    <app-add-book></app-add-book>
+  }
+
+  @if (currentView === 'manage-books') {
+    <app-manage-books></app-manage-books>
+  }
+
+  @if (currentView === 'orders') {
     <app-orders></app-orders>
   }
 
-  @if (view === 'new-sale') {
+  @if (currentView === 'new-sale') {
     <app-new-sale (saleCompleted)="goToReceipt()"></app-new-sale>
   }
 
-  @if (view === 'receipt') {
+  @if (currentView === 'receipt') {
     <app-receipt></app-receipt>
   }
 
-  @if (view === 'inventory') {
+  @if (currentView === 'inventory') {
     <app-inventory></app-inventory>
   }
 
-  @if (view === 'dashboard') {
+  @if (currentView === 'dashboard') {
     <app-dashboard></app-dashboard>
+  }
+
+  @if (currentView === 'customers') {
+    <app-customers></app-customers>
   }
 </main>

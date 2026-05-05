@@ -1,0 +1,251 @@
+<div class="customers-page">
+  <h2>Customers</h2>
+
+  @if (message) {
+    <p class="success">{{ message }}</p>
+  }
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  <section class="card customer-form-card">
+    <h3>Add Customer</h3>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Name</label>
+        <input [(ngModel)]="newCustomer.name" placeholder="Customer name" />
+      </div>
+
+      <div class="form-field">
+        <label>Phone</label>
+        <input [(ngModel)]="newCustomer.phone" placeholder="Phone number" />
+      </div>
+
+      <div class="form-field">
+        <label>Email</label>
+        <input [(ngModel)]="newCustomer.email" placeholder="Email address" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" (click)="addCustomer()">Add Customer</button>
+    </div>
+  </section>
+
+  @if (editingCustomer) {
+    <section class="card customer-form-card">
+      <h3>Edit Customer</h3>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Name</label>
+          <input [(ngModel)]="editingCustomer.name" />
+        </div>
+
+        <div class="form-field">
+          <label>Phone</label>
+          <input [(ngModel)]="editingCustomer.phone" />
+        </div>
+
+        <div class="form-field">
+          <label>Email</label>
+          <input [(ngModel)]="editingCustomer.email" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" (click)="updateCustomer()">Save Changes</button>
+        <button class="btn-secondary" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </section>
+  }
+
+  <section class="card">
+    <div class="toolbar">
+      <input
+        type="text"
+        placeholder="Search by name, phone, or email"
+        [(ngModel)]="searchText"
+        (ngModelChange)="searchCustomers(); resetPage()"
+      />
+
+      <select [(ngModel)]="sortBy" (ngModelChange)="resetPage()">
+        <option value="name-asc">Name A-Z</option>
+        <option value="name-desc">Name Z-A</option>
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+      </select>
+
+      <select [(ngModel)]="pageSize" (ngModelChange)="resetPage()">
+        <option [ngValue]="5">5</option>
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+      </select>
+
+      <button class="btn-secondary" (click)="clearFilters()">
+        Clear
+      </button>
+    </div>
+
+    @if (customers().length === 0) {
+      <div class="empty-state">
+        <p>No customers found.</p>
+      </div>
+    } @else {
+      <p class="results-info">
+        Showing {{ startItem }}-{{ endItem }} of {{ sortedCustomers.length }} customers
+      </p>
+
+      <table class="customers-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (customer of pagedCustomers; track customer.id) {
+            <tr>
+              <td>{{ customer.name }}</td>
+              <td>{{ customer.phone || '-' }}</td>
+              <td>{{ customer.email || '-' }}</td>
+              <td>{{ customer.createdDate | date:'mediumDate' }}</td>
+              <td>
+                <button class="btn-view" (click)="viewSummary(customer)">History</button>
+                <button class="btn-edit" (click)="editCustomer(customer)">Edit</button>
+                <button class="btn-delete" (click)="deleteCustomer(customer)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+          Previous
+        </button>
+
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+
+        <button (click)="goToNextPage()" [disabled]="currentPage === totalPages">
+          Next
+        </button>
+      </div>
+    }
+  </section>
+
+  @if (selectedCustomerSummary) {
+    <section class="card summary-card">
+      <h3>Customer Summary</h3>
+
+      <p><b>Name:</b> {{ selectedCustomerSummary.customer.name }}</p>
+      <p><b>Total Orders:</b> {{ selectedCustomerSummary.totalOrders }}</p>
+      <p><b>Total Spent:</b> ${{ selectedCustomerSummary.totalSpent | number:'1.2-2' }}</p>
+
+      @if (selectedCustomerSummary.lastPurchaseDate) {
+        <p><b>Last Purchase:</b> {{ selectedCustomerSummary.lastPurchaseDate | date:'medium' }}</p>
+      } @else {
+        <p><b>Last Purchase:</b> No purchases yet</p>
+      }
+
+      <h4>Order History</h4>
+
+      <div class="history-toolbar">
+        <label>
+          Start Date
+          <input
+            type="date"
+            [(ngModel)]="historyStartDate"
+            (ngModelChange)="resetHistoryPage()"
+          />
+        </label>
+
+        <label>
+          End Date
+          <input
+            type="date"
+            [(ngModel)]="historyEndDate"
+            (ngModelChange)="resetHistoryPage()"
+          />
+        </label>
+
+        <label>
+          Sort
+          <select [(ngModel)]="historySortBy" (ngModelChange)="resetHistoryPage()">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+        </label>
+
+        <label>
+          Page Size
+          <select [(ngModel)]="historyPageSize" (ngModelChange)="resetHistoryPage()">
+            <option [ngValue]="5">5 per page</option>
+            <option [ngValue]="10">10 per page</option>
+            <option [ngValue]="20">20 per page</option>
+          </select>
+        </label>
+
+        <button class="btn-secondary" (click)="clearHistoryFilters()">
+          Clear Filters
+        </button>
+      </div>
+
+      @if (filteredCustomerOrders.length === 0) {
+        <div class="empty-state">
+          <p>No orders found for this customer.</p>
+        </div>
+      } @else {
+        <p class="history-count">
+          Showing {{ historyStartItem }}-{{ historyEndItem }}
+          of {{ filteredCustomerOrders.length }} order(s)
+        </p>
+
+        @for (order of pagedCustomerOrders; track order.id) {
+          <div class="order-card">
+            <div class="order-header">
+              <b>Order #{{ order.id }}</b>
+              <span>{{ order.date | date:'medium' }}</span>
+            </div>
+
+            @for (item of order.items; track item.bookTitle) {
+              <p class="order-item">
+                {{ item.bookTitle }} &times; {{ item.quantity }}
+              </p>
+            }
+
+            <p class="order-total">
+              Total: ${{ order.finalTotal | number:'1.2-2' }}
+            </p>
+          </div>
+        }
+
+        <div class="history-pagination">
+          <button
+            class="btn-secondary"
+            (click)="goToPreviousHistoryPage()"
+            [disabled]="historyCurrentPage === 1">
+            Previous
+          </button>
+
+          <span>
+            Page {{ historyCurrentPage }} of {{ historyTotalPages }}
+          </span>
+
+          <button
+            class="btn-secondary"
+            (click)="goToNextHistoryPage()"
+            [disabled]="historyCurrentPage === historyTotalPages">
+            Next
+          </button>
+        </div>
+      }
+    </section>
+  }
+</div>

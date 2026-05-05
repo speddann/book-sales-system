@@ -8,6 +8,9 @@ import { NewSaleComponent } from './components/new-sale/new-sale';
 import { ReceiptComponent } from './components/receipt/receipt';
 import { InventoryComponent } from './components/inventory/inventory';
 import { DashboardComponent } from './components/dashboard/dashboard';
+import { AddBookComponent } from './components/add-book/add-book';
+import { ManageBooksComponent } from './components/manage-books/manage-books';
+import { CustomersComponent } from './components/customers/customers';
 
 @Component({
   selector: 'app-root',
@@ -19,13 +22,16 @@ import { DashboardComponent } from './components/dashboard/dashboard';
     ReceiptComponent,
     InventoryComponent,
     DashboardComponent,
+    AddBookComponent,
+    ManageBooksComponent,
+    CustomersComponent,
     AsyncPipe
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class AppComponent {
-  view: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' | 'dashboard' = 'shop';
+  currentView: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' | 'dashboard' | 'add-book' | 'manage-books' | 'customers' = 'shop';
   cartCount$: Observable<number>;
 
   constructor(private bookService: BookService) {
@@ -34,23 +40,27 @@ export class AppComponent {
     );
   }
 
+  setView(view: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' | 'dashboard' | 'add-book' | 'manage-books' | 'customers') {
+    this.currentView = view;
+  }
+
   goToOrders() {
-    this.view = 'orders';
+    this.setView('orders');
   }
 
   goToNewSale() {
-    this.view = 'new-sale';
+    this.setView('new-sale');
   }
 
   goToReceipt() {
-    this.view = 'receipt';
+    this.setView('receipt');
   }
 
   goToInventory() {
-    this.view = 'inventory';
+    this.setView('inventory');
   }
 
   goToDashboard() {
-    this.view = 'dashboard';
+    this.setView('dashboard');
   }
 }

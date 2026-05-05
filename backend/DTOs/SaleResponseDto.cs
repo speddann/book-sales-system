@@ -9,6 +9,8 @@ public class SaleResponseDto
    
     public decimal Subtotal { get; set; }
     public string PaymentMethod { get; set; } = string.Empty;
+    public string PaymentStatus { get; set; } = "Paid";
+    public string? PaymentReference { get; set; }
     public decimal PaymentFee { get; set; }
     public decimal FinalTotal { get; set; }
 

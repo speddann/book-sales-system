@@ -5,6 +5,8 @@ public class Sale
     public int Id { get; set; }
     public DateTime Date { get; set; } = DateTime.UtcNow;
     public string PaymentMethod { get; set; } = "ETransfer";
+    public string PaymentStatus { get; set; } = "Paid";
+    public string? PaymentReference { get; set; }
 
     public decimal Subtotal { get; set; }
 

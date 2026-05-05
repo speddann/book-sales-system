@@ -95,8 +95,14 @@ public class BookService : IBookService
 
         book.Title = updatedBook.Title;
         book.Author = updatedBook.Author;
+        book.Category = updatedBook.Category;
+        book.ISBN = updatedBook.ISBN;
+        book.Description = updatedBook.Description;
+        book.ImageUrl = updatedBook.ImageUrl;
         book.Price = updatedBook.Price;
+        book.CostPrice = updatedBook.CostPrice;
         book.Stock = updatedBook.Stock;
+        book.IsActive = updatedBook.IsActive;
 
         _context.SaveChanges();
 

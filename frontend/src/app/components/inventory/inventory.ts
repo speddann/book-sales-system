@@ -19,6 +19,7 @@ export class InventoryComponent implements OnInit {
   books = signal<Book[]>([]);
   lowStockBooks = signal<Book[]>([]);
   lowStockThreshold: number = 5;
+  inventorySearchText: string = '';
   inventoryHistory = signal<InventoryHistoryItem[]>([]);
   adjustments: { [bookId: number]: StockAdjustment } = {};
   message: string = '';
@@ -127,5 +128,18 @@ export class InventoryComponent implements OnInit {
 
   getReorderQty(stock: number): number {
     return Math.max(20 - stock, 10);
+  }
+
+  get filteredBooks(): Book[] {
+    const search = this.inventorySearchText.toLowerCase().trim();
+
+    if (!search) {
+      return this.books();
+    }
+
+    return this.books().filter(book =>
+      book.title.toLowerCase().includes(search) ||
+      book.author.toLowerCase().includes(search)
+    );
   }
 }

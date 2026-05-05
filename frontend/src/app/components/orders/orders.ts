@@ -28,6 +28,7 @@ export class OrdersComponent implements OnInit {
   showFilterPanel: boolean = false;
   selectedDateFilter: DateFilterOption = 'last7days';
   activeFilterLabel: string = 'Last 7 Days';
+  selectedPaymentStatus: 'all' | 'Paid' | 'Pending' | 'Failed' = 'all';
 
   returningId: number | null = null;
   returnSuccess: string = '';
@@ -56,6 +57,7 @@ export class OrdersComponent implements OnInit {
 
   clearFilter(): void {
     this.selectedDateFilter = 'last7days';
+    this.selectedPaymentStatus = 'all';
     this.applySelectedFilter();
   }
 
@@ -77,6 +79,14 @@ export class OrdersComponent implements OnInit {
 
   getOrderPaymentFee(sale: any): number {
     return sale?.paymentFee ?? (this.getOrderFinalTotal(sale) - this.getOrderSubtotal(sale));
+  }
+
+  getFilteredSales(sales: any[]): any[] {
+    if (this.selectedPaymentStatus === 'all') {
+      return sales;
+    }
+
+    return sales.filter(sale => (sale?.paymentStatus ?? 'Paid') === this.selectedPaymentStatus);
   }
 
   private applySelectedFilter(): void {

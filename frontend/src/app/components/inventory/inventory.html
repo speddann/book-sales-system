@@ -66,6 +66,14 @@
   </table>
 }
 
+<div class="inventory-toolbar">
+  <input
+    type="text"
+    placeholder="Search books by title or author"
+    [(ngModel)]="inventorySearchText"
+  />
+</div>
+
 <table class="inventory-table">
   <thead>
     <tr>
@@ -80,7 +88,7 @@
   </thead>
 
   <tbody>
-    @for (book of books(); track book.id) {
+    @for (book of filteredBooks; track book.id) {
       <tr>
         <td>{{ book.title }}</td>
         <td>{{ book.author }}</td>

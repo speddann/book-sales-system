@@ -6,8 +6,14 @@
     id?: number;
     title: string;
     author: string;
+    category?: string;
+    isbn?: string;
+    description?: string;
+    imageUrl?: string;
     price: number;
+    costPrice?: number;
     stock: number;
+    isActive?: boolean;
   }
 
   interface ApiResponse<T> {
@@ -102,6 +108,26 @@
       return this.http.delete(`${this.apiUrl}/${id}`);
     }
 
+    getCustomers(search: string = '') {
+      return this.http.get<Customer[]>(`${this.customersApiUrl}?search=${search}`);
+    }
+
+    addCustomer(customer: Customer) {
+      return this.http.post<Customer>(this.customersApiUrl, customer);
+    }
+
+    updateCustomer(id: number, customer: Customer) {
+      return this.http.put<Customer>(`${this.customersApiUrl}/${id}`, customer);
+    }
+
+    deleteCustomer(id: number) {
+      return this.http.delete(`${this.customersApiUrl}/${id}`);
+    }
+
+    getCustomerSummary(id: number) {
+      return this.http.get<any>(`${this.customersApiUrl}/${id}/summary`);
+    }
+
     private loadCartFromStorage(): CartItem[] {
       const savedCart = localStorage.getItem('cart');
       return savedCart ? JSON.parse(savedCart) : [];
@@ -172,16 +198,10 @@
       return this.http.post(this.salesApiUrl, sale);
     }
 
-    getCustomers() {
-      return this.http.get<Customer[]>(this.customersApiUrl);
-    }
-
-    searchCustomers(term: string) {
-      return this.http.get<Customer[]>(`${this.customersApiUrl}/search?term=${encodeURIComponent(term)}`);
-    }
-
-    createCustomer(customer: Customer) {
-      return this.http.post<Customer>(this.customersApiUrl, customer);
+    emailReceipt(saleId: number, email: string) {
+      return this.http.post(`${this.salesApiUrl}/${saleId}/email-receipt`, {
+        email
+      });
     }
 
     getSales(startDate?: string, endDate?: string, range?: string) {
@@ -222,10 +242,6 @@
       this.lastSaleSubject.next(sale);
     }
     
-    getCustomerSummary(customerId: number) {
-      return this.http.get<any>(`http://localhost:5145/api/customers/${customerId}/summary`);
-    }
-
     getDashboard() {
       return this.http.get<SalesDashboard>(`${this.salesApiUrl}/dashboard`);
     }

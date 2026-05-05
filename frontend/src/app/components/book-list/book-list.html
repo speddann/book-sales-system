@@ -3,62 +3,108 @@
   <!-- Top bar -->
   <div class="shop-header">
     <h2>Browse Books</h2>
-    <button class="btn-primary" (click)="showAddForm = true">+ Add Book</button>
   </div>
 
-  <!-- Add / Edit form -->
-  @if (showAddForm || editingBook) {
-    <div class="card form-card">
-      <h3>{{ editingBook ? 'Edit Book' : 'Add New Book' }}</h3>
-      <div class="form-grid">
-        @if (editingBook) {
-          <input [(ngModel)]="editingBook.title"  placeholder="Title" />
-          <input [(ngModel)]="editingBook.author" placeholder="Author" />
-          <input [(ngModel)]="editingBook.price"  type="number" placeholder="Price" />
-          <input [(ngModel)]="editingBook.stock"  type="number" placeholder="Stock" />
-          <div class="form-actions">
-            <button class="btn-primary"    (click)="updateBook()">Save Changes</button>
-            <button class="btn-secondary"  (click)="editingBook = null">Cancel</button>
-          </div>
-        } @else {
-          <input [(ngModel)]="newBook.title"  placeholder="Title" />
-          <input [(ngModel)]="newBook.author" placeholder="Author" />
-          <input [(ngModel)]="newBook.price"  type="number" placeholder="Price" />
-          <input [(ngModel)]="newBook.stock"  type="number" placeholder="Stock" />
-          <div class="form-actions">
-            <button class="btn-primary"   (click)="addBook(); showAddForm = false">Add Book</button>
-            <button class="btn-secondary" (click)="showAddForm = false">Cancel</button>
-          </div>
-        }
-      </div>
-    </div>
-  }
+  <div class="shop-filters">
+    <input
+      type="text"
+      placeholder="Search by title, author, or ISBN"
+      [(ngModel)]="searchText"
+      (ngModelChange)="resetPage()"
+    />
+
+    <select [(ngModel)]="selectedCategory" (ngModelChange)="resetPage()">
+      <option value="all">All Categories</option>
+      @for (category of categories; track category) {
+        <option [value]="category">{{ category }}</option>
+      }
+    </select>
+
+    <select [(ngModel)]="sortBy" (ngModelChange)="resetPage()">
+      <option value="title-asc">Title A-Z</option>
+      <option value="title-desc">Title Z-A</option>
+      <option value="author-asc">Author A-Z</option>
+      <option value="price-low">Price Low to High</option>
+      <option value="price-high">Price High to Low</option>
+      <option value="stock-low">Stock Low to High</option>
+    </select>
+
+    <select [(ngModel)]="pageSize" (ngModelChange)="resetPage()">
+      <option [ngValue]="10">10 per page</option>
+      <option [ngValue]="20">20 per page</option>
+      <option [ngValue]="50">50 per page</option>
+    </select>
+
+    <button class="btn-secondary" (click)="clearFilters()">Clear Filters</button>
+  </div>
 
   <div class="shop-layout">
     <!-- Book Grid — click a card to open detail modal -->
     <div class="books-section">
-      <div class="book-container">
-        @for (book of books(); track book.id) {
-          <div class="book-card" (click)="openDetail(book)">
-            <div class="book-image-placeholder">
-              <span>No Photo Yet</span>
-            </div>
-            <div class="book-card-body">
-              <h3 class="book-title">{{ book.title }}</h3>
-              <p class="book-author">{{ book.author || 'Unknown Author' }}</p>
-              <div class="book-card-footer">
-                <span class="book-price">${{ book.price }}</span>
-                <span class="stock-badge"
-                  [class.in-stock]="book.stock > 10"
-                  [class.low-stock]="book.stock > 0 && book.stock <= 10"
-                  [class.out-of-stock]="book.stock === 0">
-                  {{ book.stock > 0 ? book.stock + ' left' : 'Out of Stock' }}
-                </span>
+      <div class="results-info">
+        Showing {{ startItem }}–{{ endItem }} of {{ filteredBooks.length }} books
+      </div>
+
+      @if (pagedBooks.length === 0) {
+        <div class="empty-state">
+          <p>No books found.</p>
+          <button class="btn-secondary" (click)="clearFilters()">Clear Filters</button>
+        </div>
+      } @else {
+        <div class="book-container">
+          @for (book of pagedBooks; track book.id) {
+            <div class="book-card" (click)="openDetail(book)">
+              @if (book.imageUrl) {
+                <img class="book-image" [src]="book.imageUrl" [alt]="book.title" />
+              } @else {
+                <div class="book-image-placeholder">
+                  <span>No Photo Yet</span>
+                </div>
+              }
+              <div class="book-card-body">
+                <h3 class="book-title">{{ book.title }}</h3>
+                <p class="book-author">{{ book.author || 'Unknown Author' }}</p>
+                @if (book.category) {
+                  <span class="book-category-badge">{{ book.category }}</span>
+                }
+                @if (book.isbn) {
+                  <p class="book-isbn">ISBN: {{ book.isbn }}</p>
+                }
+                @if (book.description) {
+                  <p class="book-description">{{ book.description }}</p>
+                }
+                <div class="book-card-footer">
+                  <span class="book-price">${{ book.price }}</span>
+                  <span class="stock-badge"
+                    [class.in-stock]="book.stock > 10"
+                    [class.low-stock]="book.stock > 0 && book.stock <= 10"
+                    [class.out-of-stock]="book.stock === 0">
+                    @if (book.stock === 0) {
+                      Out of Stock
+                    } @else if (book.stock <= 10) {
+                      Low Stock
+                    } @else {
+                      In Stock
+                    }
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
+
+      @if (filteredBooks.length > 0) {
+        <div class="pagination">
+          <button (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+            Previous
+          </button>
+          <span>Page {{ currentPage }} of {{ totalPages }}</span>
+          <button (click)="goToNextPage()" [disabled]="currentPage === totalPages">
+            Next
+          </button>
+        </div>
+      }
     </div>
 
     <!-- Sticky cart panel -->
@@ -114,13 +160,29 @@
       <div class="modal-card" (click)="$event.stopPropagation()">
         <button class="modal-close" (click)="closeDetail()">&#10005;</button>
 
-        <div class="modal-image-placeholder">
-          <span>Photo Coming Soon</span>
-        </div>
+        @if (selectedBook.imageUrl) {
+          <img class="modal-image" [src]="selectedBook.imageUrl" [alt]="selectedBook.title" />
+        } @else {
+          <div class="modal-image-placeholder">
+            <span>Photo Coming Soon</span>
+          </div>
+        }
 
         <div class="modal-body">
           <h2 class="modal-title">{{ selectedBook.title }}</h2>
           <p class="modal-author">by {{ selectedBook.author || 'Unknown Author' }}</p>
+
+          @if (selectedBook.category) {
+            <p class="modal-category">{{ selectedBook.category }}</p>
+          }
+
+          @if (selectedBook.isbn) {
+            <p class="modal-isbn">ISBN: {{ selectedBook.isbn }}</p>
+          }
+
+          @if (selectedBook.description) {
+            <p class="modal-description">{{ selectedBook.description }}</p>
+          }
 
           <div class="modal-meta">
             <span class="modal-price">${{ selectedBook.price }}</span>
@@ -137,11 +199,6 @@
             [disabled]="selectedBook.stock === 0">
             Add to Cart
           </button>
-
-          <div class="modal-admin-actions">
-            <button class="btn-edit" (click)="editBook(selectedBook); closeDetail()">Edit Book</button>
-            <button class="btn-delete" (click)="deleteBook(selectedBook.id!); closeDetail()">Delete</button>
-          </div>
         </div>
       </div>
     </div>

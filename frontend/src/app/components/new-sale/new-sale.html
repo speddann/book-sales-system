@@ -41,6 +41,40 @@
         <p class="guest-label">Customer: Guest</p>
       }
 
+      @if (!selectedCustomer) {
+        <button class="btn-secondary" (click)="showNewCustomerForm = !showNewCustomerForm">
+          {{ showNewCustomerForm ? 'Cancel New Customer' : '+ Add New Customer' }}
+        </button>
+      }
+
+      @if (showNewCustomerForm) {
+        <div class="quick-customer-form">
+          <h4>New Customer</h4>
+
+          <input
+            type="text"
+            placeholder="Customer name"
+            [(ngModel)]="newCustomer.name"
+          />
+
+          <input
+            type="text"
+            placeholder="Phone"
+            [(ngModel)]="newCustomer.phone"
+          />
+
+          <input
+            type="email"
+            placeholder="Email"
+            [(ngModel)]="newCustomer.email"
+          />
+
+          <button class="btn-primary" (click)="createCustomerFromSale()">
+            Save & Select Customer
+          </button>
+        </div>
+      }
+
       @if (customers().length > 0) {
         <div class="customer-results">
           @for (customer of customers(); track customer.id) {
@@ -133,6 +167,22 @@
             <option value="etransfer">E-transfer</option>
           </select>
         </div>
+        <div class="totals-row">
+          <label>Payment Status</label>
+          <select [(ngModel)]="paymentStatus">
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
+        <div class="totals-row">
+          <label>Reference</label>
+          <input
+            type="text"
+            placeholder="E-transfer reference number"
+            [(ngModel)]="paymentReference"
+          />
+        </div>
         <div class="total-line">
           <span>Subtotal</span>
           <span>${{ getSubtotal() | number:'1.2-2' }}</span>
@@ -167,3 +217,83 @@
   </div>
 
 </div>
+
+@if (lastCompletedSale) {
+  <section class="card receipt-preview">
+    <h3>Receipt Preview</h3>
+
+    <p><b>Order ID:</b> {{ lastCompletedSale.id ?? lastCompletedSale.saleId }}</p>
+    <p><b>Date:</b> {{ (lastCompletedSale.date ?? lastCompletedSale.saleDate) | date:'medium' }}</p>
+    <p><b>Payment:</b> {{ lastCompletedSale.paymentMethod ?? 'N/A' }}</p>
+    <p><b>Payment Status:</b> {{ lastCompletedSale.paymentStatus }}</p>
+    @if (lastCompletedSale.paymentReference) {
+      <p><b>Reference:</b> {{ lastCompletedSale.paymentReference }}</p>
+    }
+    <p>
+      <b>Customer:</b>
+      {{ lastCompletedSale.receiptCustomer?.name || 'Guest' }}
+    </p>
+
+    <h4>Items</h4>
+
+    <table class="receipt-table">
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (item of lastCompletedSale.receiptItems; track item.title) {
+          <tr>
+            <td>{{ item.title }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.price | number:'1.2-2' }}</td>
+            <td>${{ item.total | number:'1.2-2' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <p><b>Subtotal:</b> ${{ (lastCompletedSale.subtotal ?? 0) | number:'1.2-2' }}</p>
+    <p><b>Fee:</b> ${{ (lastCompletedSale.paymentFee ?? 0) | number:'1.2-2' }}</p>
+    <h4><b>Final Total:</b> ${{ (lastCompletedSale.finalTotal ?? 0) | number:'1.2-2' }}</h4>
+
+    <div class="receipt-email-box">
+      <label>Email receipt to</label>
+      <input
+        type="email"
+        [(ngModel)]="receiptEmail"
+        placeholder="Customer email"
+      />
+    </div>
+
+    @if (receiptEmailMessage) {
+      <p class="msg-success">{{ receiptEmailMessage }}</p>
+    }
+
+    @if (receiptEmailError) {
+      <p class="msg-error">{{ receiptEmailError }}</p>
+    }
+
+    <div class="receipt-actions">
+      <button
+        class="btn-primary"
+        (click)="emailReceipt()"
+        [disabled]="isEmailingReceipt">
+        {{ isEmailingReceipt ? 'Sending...' : 'Email Receipt' }}
+      </button>
+
+      <button class="btn-primary" (click)="printReceipt()">
+        Print Receipt
+      </button>
+
+      <button class="btn-secondary" (click)="lastCompletedSale = null">
+        Close Receipt
+      </button>
+    </div>
+  </section>
+}

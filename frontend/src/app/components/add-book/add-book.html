@@ -1,0 +1,82 @@
+<div class="add-book-page">
+	<h2>Add Book</h2>
+
+	@if (message) {
+		<p class="success">{{ message }}</p>
+	}
+
+	@if (error) {
+		<p class="error">{{ error }}</p>
+	}
+
+	<div class="card add-book-card">
+		<h3>Basic Information</h3>
+
+		<div class="form-grid">
+			<div class="form-field">
+				<label>Title</label>
+				<input [(ngModel)]="newBook.title" placeholder="Book title" />
+			</div>
+
+			<div class="form-field">
+				<label>Author</label>
+				<input [(ngModel)]="newBook.author" placeholder="Author name" />
+			</div>
+
+			<div class="form-field">
+				<label>Category / Genre</label>
+				<select [(ngModel)]="newBook.category">
+					<option value="">Select category</option>
+					@for (category of categories; track category) {
+						<option [value]="category">{{ category }}</option>
+					}
+				</select>
+			</div>
+
+			<div class="form-field">
+				<label>ISBN</label>
+				<input [(ngModel)]="newBook.isbn" placeholder="ISBN number" />
+			</div>
+		</div>
+
+		<h3>Pricing & Inventory</h3>
+
+		<div class="form-grid">
+			<div class="form-field">
+				<label>Cost Price</label>
+				<input type="number" [(ngModel)]="newBook.costPrice" />
+			</div>
+
+			<div class="form-field">
+				<label>Selling Price</label>
+				<input type="number" [(ngModel)]="newBook.price" />
+			</div>
+
+			<div class="form-field">
+				<label>Initial Stock</label>
+				<input type="number" [(ngModel)]="newBook.stock" />
+			</div>
+
+			<label class="checkbox-row">
+				<input type="checkbox" [(ngModel)]="newBook.isActive" />
+				Active book
+			</label>
+		</div>
+
+		<h3>Book Details</h3>
+
+		<div class="form-field">
+			<label>Image URL</label>
+			<input [(ngModel)]="newBook.imageUrl" placeholder="Book cover image URL" />
+		</div>
+
+		<div class="form-field">
+			<label>Description</label>
+			<textarea [(ngModel)]="newBook.description" placeholder="Short book description"></textarea>
+		</div>
+
+		<div class="form-actions">
+			<button class="btn-primary" (click)="addBook()">Add Book</button>
+		</div>
+	</div>
+</div>
