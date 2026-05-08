@@ -4,6 +4,14 @@ Full-stack bookstore management system built with Angular and .NET 8.
 
 This project supports catalog management, customer management, sales checkout, inventory tracking, returns, analytics, and receipt workflows.
 
+## Latest Updates (May 2026)
+
+- Added `PaymentStatus` and `PaymentReference` end-to-end in sale flow
+- Added receipt email API integration path with mock backend response
+- Added payment status badges and payment-status filter in Orders
+- Added click-based navbar dropdown behavior for Sales and Operations
+- Enhanced Customers list with sorting, pagination, and results count
+
 ## What This Project Does
 
 - Manage a full book catalog (price, stock, category, ISBN, status)
@@ -42,17 +50,29 @@ This project supports catalog management, customer management, sales checkout, i
 - Guest checkout or customer-based checkout
 - Quick-add customer from sale screen
 - Auto fee and final total calculation
+- Payment status selection (Paid/Pending/Failed)
+- Payment reference capture
 - Receipt preview with item-level lines
 - Print receipt and email receipt (mock backend endpoint)
 
 ### Customers
 
 - Add, edit, delete, and search customers
+- Customer list sorting (name/date)
+- Customer list pagination + result count
 - Customer summary (orders, spend, last purchase)
 - Order history filters:
 	- date range
 	- sort (newest/oldest)
 	- page size and pagination
+
+### Orders
+
+- Date-based filters and custom range
+- Payment status badges (Paid/Pending/Failed)
+- Payment status filter (client-side)
+- Shows payment reference when present
+- Return order workflow
 
 ### Manage Books
 
@@ -76,10 +96,16 @@ Base URLs:
 Key endpoints include:
 - `POST /api/sales`
 - `POST /api/sales/{id}/return`
+- `POST /api/sales/{saleId}/return-items`
 - `POST /api/sales/{id}/email-receipt` (mock success response)
 - `GET /api/customers?search=...`
 - `GET /api/customers/{id}/summary`
 - `POST /api/books/{id}/stock-adjustment`
+
+Sale payload now supports:
+- `paymentMethod`
+- `paymentStatus`
+- `paymentReference`
 
 ## Quick Start
 
@@ -128,6 +154,12 @@ Backend build:
 dotnet build
 ```
 
+Apply migrations:
+
+```powershell
+dotnet ef database update
+```
+
 Frontend build:
 
 ```powershell
@@ -138,6 +170,7 @@ npx ng build --configuration development
 
 - Email receipt endpoint is currently mock-only (no SMTP provider wired yet)
 - This is ideal for learning flow first, then real email integration next
+- Payment status default is configured as `Paid`
 
 ## Documentation
 
