@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "run backend",
+      "type": "shell",
+      "command": "dotnet run --project ${workspaceFolder}/backend/Booksales.API.csproj",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": ".",
+          "message": 0
+        },
+        "background": {
+          "activeOnStart": true,
+          "endsPattern": "Now listening on:"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run frontend",
+      "type": "shell",
+      "command": "npm start --prefix ${workspaceFolder}/frontend",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": ".",
+          "message": 0
+        },
+        "background": {
+          "activeOnStart": true,
+          "endsPattern": "Application bundle generation complete|Compiled successfully|Local:"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run full stack",
+      "dependsOn": ["run backend", "run frontend"],
+      "dependsOrder": "parallel"
+    }
+  ]
+}
