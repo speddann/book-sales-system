@@ -79,5 +79,21 @@ public class SalesController : ControllerBase
         var result = _salesService.ReturnSaleItems(saleId, request);
         return Ok(result);
     }
+
+    [HttpPost("{id}/email-receipt")]
+    public IActionResult EmailReceipt(int id, EmailReceiptRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new
+            {
+                message = "Email is required."
+            });
+        }
+
+        var response = _salesService.EmailReceipt(id, request.Email);
+
+        return Ok(response);
+    }
 }
 

@@ -9,6 +9,12 @@
 
 <div class="orders-toolbar">
   <button (click)="openFilterPanel()">Filter</button>
+  <select [(ngModel)]="selectedPaymentStatus">
+    <option value="all">All Payment Status</option>
+    <option value="Paid">Paid</option>
+    <option value="Pending">Pending</option>
+    <option value="Failed">Failed</option>
+  </select>
   <p class="active-filter"><b>Showing:</b> {{ activeFilterLabel }}</p>
 </div>
 
@@ -79,11 +85,11 @@
 }
 
 @if (sales$ | async; as sales) {
-  @if (sales.length === 0) {
+  @if (getFilteredSales(sales).length === 0) {
     <p>No orders found for {{ activeFilterLabel }}.</p>
   }
 
-  @for (sale of sales; track sale.saleId) {
+  @for (sale of getFilteredSales(sales); track sale.saleId) {
     <div class="order-card" [class.order-returned]="getSaleStatus(sale) === 'Returned'">
       <div class="order-card-header">
         <span><b>Order #{{ sale.saleId }}</b></span>
@@ -99,6 +105,21 @@
         <b>Payment Method:</b>
         {{ sale.paymentMethod || 'Not captured' }}
       </p>
+
+      <p>
+        <b>Payment Status:</b>
+        <span
+          class="payment-status"
+          [class.paid]="sale.paymentStatus === 'Paid'"
+          [class.pending]="sale.paymentStatus === 'Pending'"
+          [class.failed]="sale.paymentStatus === 'Failed'">
+          {{ sale.paymentStatus }}
+        </span>
+      </p>
+
+      @if (sale.paymentReference) {
+        <p><b>Reference:</b> {{ sale.paymentReference }}</p>
+      }
 
       <p><b>E-transfer Fee:</b> ${{ getOrderPaymentFee(sale) | number:'1.2-2' }}</p>
 

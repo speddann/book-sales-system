@@ -25,10 +25,24 @@ export class NewSaleComponent implements OnInit {
   selectedCustomer: Customer | null = null;
   saleCart: SaleCartItem[] = [];
   paymentMethod: string = 'etransfer';
+  paymentStatus: string = 'Paid';
+  paymentReference: string = '';
   checkoutMessage: string = '';
   checkoutError: string = '';
   isCheckingOut: boolean = false;
   customerSummary: any = null;
+  showNewCustomerForm: boolean = false;
+  lastCompletedSale: any = null;
+  receiptEmail = '';
+  isEmailingReceipt = false;
+  receiptEmailMessage = '';
+  receiptEmailError = '';
+
+  newCustomer: Customer = {
+    name: '',
+    phone: '',
+    email: ''
+  };
 
   constructor(private bookService: BookService) {}
 
@@ -45,7 +59,7 @@ export class NewSaleComponent implements OnInit {
       return;
     }
 
-    this.bookService.searchCustomers(term).subscribe(customers => {
+    this.bookService.getCustomers(term).subscribe((customers: Customer[]) => {
       this.customers.set(customers);
     });
   }
@@ -54,22 +68,52 @@ export class NewSaleComponent implements OnInit {
     this.selectedCustomer = customer;
     this.customerSearchText = customer.name;
     this.customers.set([]);
+    this.showNewCustomerForm = false;
     this.bookService.getCustomerSummary(customer.id!).subscribe(summary => {
       this.customerSummary = summary;
     });
-
-
   }
 
-    clearCustomer(): void {
-      this.selectedCustomer = null;
-      this.customerSearchText = '';
-      this.customerSummary = null;
+  createCustomerFromSale(): void {
+    if (!this.newCustomer.name.trim()) {
+      this.checkoutError = 'Customer name is required.';
+      return;
     }
+
+    this.bookService.addCustomer(this.newCustomer).subscribe({
+      next: (createdCustomer) => {
+        this.selectedCustomer = createdCustomer;
+        this.customerSearchText = createdCustomer.name;
+        this.customers.set([]);
+        this.customerSummary = null;
+
+        this.newCustomer = {
+          name: '',
+          phone: '',
+          email: ''
+        };
+
+        this.showNewCustomerForm = false;
+        this.checkoutError = '';
+        this.checkoutMessage = 'Customer added and selected.';
+      },
+      error: () => {
+        this.checkoutError = 'Failed to add customer.';
+        this.checkoutMessage = '';
+      }
+    });
+  }
+
+  clearCustomer(): void {
+    this.selectedCustomer = null;
+    this.customerSearchText = '';
+    this.customerSummary = null;
+    this.showNewCustomerForm = false;
+  }
 
   loadBooks(): void {
     this.bookService.getBooks().subscribe(data => {
-      this.books.set(data);
+      this.books.set(data.filter(book => book.isActive !== false));
     });
   }
 
@@ -88,6 +132,11 @@ export class NewSaleComponent implements OnInit {
 
   addToSale(book: Book): void {
     if (!book.id) return;
+
+    if (book.isActive === false) {
+      alert('This book is inactive and cannot be sold.');
+      return;
+    }
 
     const existingItem = this.saleCart.find(item => item.book.id === book.id);
 
@@ -151,6 +200,8 @@ export class NewSaleComponent implements OnInit {
 
     const sale = {
       paymentMethod: this.paymentMethod,
+      paymentStatus: this.paymentStatus,
+      paymentReference: this.paymentReference,
       customerId: this.selectedCustomer?.id ?? null,
       items: this.saleCart.map(item => ({
         bookId: item.book.id,
@@ -161,19 +212,76 @@ export class NewSaleComponent implements OnInit {
     this.bookService.checkout(sale).subscribe({
       next: (response: any) => {
         const savedSale = response?.data ?? response;
-        this.bookService.setLastSale(savedSale);
+
+        const receiptCustomer = this.selectedCustomer
+          ? { ...this.selectedCustomer }
+          : null;
+
+        const receiptItems = this.saleCart.map(item => ({
+          title: item.book.title,
+          quantity: item.quantity,
+          price: item.book.price,
+          total: item.book.price * item.quantity
+        }));
+
+        this.lastCompletedSale = {
+          ...savedSale,
+          id: savedSale.id ?? savedSale.saleId,
+          paymentStatus: savedSale.paymentStatus ?? this.paymentStatus,
+          paymentReference: savedSale.paymentReference ?? this.paymentReference,
+          receiptCustomer,
+          receiptItems
+        };
+        this.receiptEmail = receiptCustomer?.email || '';
+        this.receiptEmailMessage = '';
+        this.receiptEmailError = '';
+
+        this.bookService.setLastSale(this.lastCompletedSale);
         this.saleCart = [];
         this.searchText = '';
+        this.paymentStatus = 'Paid';
+        this.paymentReference = '';
         this.clearCustomer();
         this.loadBooks();
 
         this.isCheckingOut = false;
+        this.checkoutMessage = 'Sale completed successfully.';
         this.bookService.loadSales();
-        this.saleCompleted.emit();
       },
       error: (err) => {
         this.checkoutError = err.error?.message || 'Sale failed.';
         this.isCheckingOut = false;
+      }
+    });
+  }
+
+  printReceipt(): void {
+    window.print();
+  }
+
+  emailReceipt(): void {
+    if (!this.lastCompletedSale?.id) return;
+
+    if (!this.receiptEmail.trim()) {
+      this.receiptEmailError = 'Please enter customer email.';
+      return;
+    }
+
+    this.isEmailingReceipt = true;
+    this.receiptEmailMessage = '';
+    this.receiptEmailError = '';
+
+    this.bookService.emailReceipt(
+      this.lastCompletedSale.id,
+      this.receiptEmail
+    ).subscribe({
+      next: () => {
+        this.receiptEmailMessage = 'Receipt emailed successfully.';
+        this.isEmailingReceipt = false;
+      },
+      error: () => {
+        this.receiptEmailError = 'Failed to email receipt.';
+        this.isEmailingReceipt = false;
       }
     });
   }

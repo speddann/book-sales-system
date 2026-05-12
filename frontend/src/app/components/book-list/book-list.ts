@@ -19,15 +19,17 @@ export class BookListComponent implements OnInit {
 
   books = signal<Book[]>([]);
   cart$: Observable<CartItem[]>;
-  newBook: Book = { title: '', author: '', price: 0, stock: 0 };
-  editingBook: Book | null = null;
-  showAddForm = false;
   showOrders = false;
   sales$: Observable<any[]>;
   isCheckingOut: boolean = false;
   checkoutMessage: string = '';
   checkoutError: string = '';
   selectedBook: Book | null = null;
+  searchText: string = '';
+  selectedCategory: string = 'all';
+  sortBy: string = 'title-asc';
+  pageSize: number = 20;
+  currentPage: number = 1;
 
   constructor(private bookService: BookService) {
     this.sales$ = this.bookService.sales$;
@@ -40,35 +42,103 @@ export class BookListComponent implements OnInit {
 
   loadBooks() {
     this.bookService.getBooks().subscribe(data => {
-      this.books.set(data);
+      this.books.set(data.filter(book => book.isActive !== false));
+      this.currentPage = 1;
     });
   }
 
-  addBook() {
-    this.bookService.addBook(this.newBook).subscribe(() => {
-      this.loadBooks(); // Refresh the list after adding a book
-      this.newBook = { title: '', author: '', price: 0, stock: 0 }; // Reset the form
-    });
-  }
-  
-  editBook(book: Book) {
-    this.editingBook = { ...book };
-  }
-  updateBook() {
-    if (!this.editingBook) return;
-    this.bookService.updateBook(this.editingBook.id!, this.editingBook).subscribe(() => {
-      this.loadBooks(); // Refresh the list after updating a book
-      this.editingBook = null; // Exit edit mode
-    });
+  get categories(): string[] {
+    const categories = this.books()
+      .map(book => book.category)
+      .filter((category): category is string => !!category && category.trim() !== '');
+
+    return [...new Set(categories)];
   }
 
-  deleteBook(id: number) {
-    this.bookService.deleteBook(id).subscribe(() => {
-      this.loadBooks();
+  get filteredBooks(): Book[] {
+    let result = this.books().filter(book => book.isActive !== false);
+
+    const search = this.searchText.toLowerCase().trim();
+
+    if (search) {
+      result = result.filter(book =>
+        book.title.toLowerCase().includes(search) ||
+        book.author.toLowerCase().includes(search) ||
+        (book.isbn || '').toLowerCase().includes(search)
+      );
+    }
+
+    if (this.selectedCategory !== 'all') {
+      result = result.filter(book => book.category === this.selectedCategory);
+    }
+
+    result = [...result].sort((a, b) => {
+      switch (this.sortBy) {
+        case 'title-desc':
+          return b.title.localeCompare(a.title);
+        case 'author-asc':
+          return a.author.localeCompare(b.author);
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'stock-low':
+          return a.stock - b.stock;
+        default:
+          return a.title.localeCompare(b.title);
+      }
     });
+
+    return result;
+  }
+
+  get startItem(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get endItem(): number {
+    return Math.min(this.currentPage * this.pageSize, this.filteredBooks.length);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredBooks.length / this.pageSize) || 1;
+  }
+
+  get pagedBooks(): Book[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredBooks.slice(start, start + this.pageSize);
+  }
+
+  goToPreviousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  goToNextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
+  }
+
+  clearFilters(): void {
+    this.searchText = '';
+    this.selectedCategory = 'all';
+    this.sortBy = 'title-asc';
+    this.pageSize = 20;
+    this.currentPage = 1;
   }
 
   addToCart(book: Book) {
+    if (book.isActive === false) {
+      alert('This book is inactive and cannot be sold.');
+      return;
+    }
+
     this.bookService.addToCart(book);
   }
 

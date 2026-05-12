@@ -37,6 +37,9 @@ public class SalesService : ISalesService
             if (book == null)
                 throw new NotFoundException($"Book with ID {item.BookId} not found");
 
+            if (!book.IsActive)
+                throw new BusinessException($"{book.Title} is inactive and cannot be sold.");
+
             if (book.Stock < item.Quantity)
                 throw new BusinessException($"Not enough stock for '{book.Title}'. Available: {book.Stock}");
 
@@ -50,6 +53,11 @@ public class SalesService : ISalesService
             paymentFee = subtotal * 0.05m;
         }
 
+        sale.PaymentStatus = string.IsNullOrWhiteSpace(sale.PaymentStatus)
+            ? "Paid"
+            : sale.PaymentStatus;
+
+        sale.PaymentReference = sale.PaymentReference;
         sale.Subtotal = subtotal;
         sale.PaymentFee = paymentFee;
         sale.FinalTotal = subtotal + paymentFee;
@@ -69,6 +77,8 @@ public class SalesService : ISalesService
             Date = savedSale.Date,
             Subtotal = savedSale.Subtotal,
             PaymentMethod = savedSale.PaymentMethod,
+            PaymentStatus = savedSale.PaymentStatus,
+            PaymentReference = savedSale.PaymentReference,
             PaymentFee = savedSale.PaymentFee,
             FinalTotal = savedSale.FinalTotal,
             TotalAmount = savedSale.FinalTotal,
@@ -151,6 +161,8 @@ public class SalesService : ISalesService
 
                 Subtotal = s.Subtotal,
                 PaymentMethod = s.PaymentMethod,
+                PaymentStatus = s.PaymentStatus,
+                PaymentReference = s.PaymentReference,
                 PaymentFee = s.PaymentFee,
                 FinalTotal = s.FinalTotal,
                 TotalAmount = s.FinalTotal,
@@ -229,6 +241,8 @@ public class SalesService : ISalesService
                 Status = sale.Status,
                 Subtotal = sale.Subtotal,
                 PaymentMethod = sale.PaymentMethod,
+                PaymentStatus = sale.PaymentStatus,
+                PaymentReference = sale.PaymentReference,
                 PaymentFee = sale.PaymentFee,
                 FinalTotal = sale.FinalTotal,
                 TotalAmount = sale.FinalTotal,
@@ -345,6 +359,48 @@ public class SalesService : ISalesService
             SalesThisMonth = sales.Count(s => s.Date >= monthStart),
 
             TopBooks = topBooks
+        };
+    }
+
+    public CommonResponse<object> EmailReceipt(int saleId, string email)
+    {
+        var sale = _context.Sales
+            .Include(s => s.Customer)
+            .Include(s => s.Items)
+            .ThenInclude(i => i.Book)
+            .FirstOrDefault(s => s.Id == saleId);
+
+        if (sale == null)
+        {
+            throw new NotFoundException("Sale not found.");
+        }
+
+        // For now: fake email sending.
+        // Later we will connect SMTP / SendGrid / Gmail.
+        var receiptPreview = new
+        {
+            SaleId = sale.Id,
+            Customer = sale.Customer?.Name ?? "Guest",
+            Email = email,
+            sale.Date,
+            sale.PaymentMethod,
+            sale.Subtotal,
+            sale.PaymentFee,
+            sale.FinalTotal,
+            Items = sale.Items.Select(i => new
+            {
+                BookTitle = i.Book?.Title,
+                i.Quantity,
+                Price = i.Book?.Price,
+                LineTotal = (i.Book?.Price ?? 0) * i.Quantity
+            })
+        };
+
+        return new CommonResponse<object>
+        {
+            IsSuccess = true,
+            Message = $"Receipt email prepared for {email}. SMTP integration pending.",
+            Data = receiptPreview
         };
     }
 }

@@ -1,0 +1,155 @@
+<div class="manage-books-page">
+  <h2>Manage Books</h2>
+
+  @if (message) {
+    <p class="success">{{ message }}</p>
+  }
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  <div class="toolbar">
+    <input
+      type="text"
+      placeholder="Search by title, author, or ISBN"
+      [(ngModel)]="searchText"
+    />
+
+    <select [(ngModel)]="selectedCategory">
+      <option value="all">All Categories</option>
+      @for (category of categories; track category) {
+        <option [value]="category">{{ category }}</option>
+      }
+    </select>
+
+    <select [(ngModel)]="statusFilter">
+      <option value="all">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+
+    <select [(ngModel)]="sortBy">
+      <option value="title-asc">Title A-Z</option>
+      <option value="title-desc">Title Z-A</option>
+      <option value="author-asc">Author A-Z</option>
+      <option value="stock-low">Stock Low to High</option>
+      <option value="stock-high">Stock High to Low</option>
+    </select>
+
+    <button class="btn-secondary" (click)="clearFilters()">Clear Filters</button>
+  </div>
+
+  @if (editingBook) {
+    <div class="card edit-card">
+      <h3>Edit Book</h3>
+
+      <h4>Basic Information</h4>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Title</label>
+          <input [(ngModel)]="editingBook.title" placeholder="Title" />
+        </div>
+
+        <div class="form-field">
+          <label>Author</label>
+          <input [(ngModel)]="editingBook.author" placeholder="Author" />
+        </div>
+
+        <div class="form-field">
+          <label>Category / Genre</label>
+          <select [(ngModel)]="editingBook.category">
+            <option value="">Select category</option>
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>ISBN</label>
+          <input [(ngModel)]="editingBook.isbn" placeholder="ISBN" />
+        </div>
+      </div>
+
+      <h4>Pricing & Inventory</h4>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Cost Price</label>
+          <input type="number" [(ngModel)]="editingBook.costPrice" />
+        </div>
+
+        <div class="form-field">
+          <label>Selling Price</label>
+          <input type="number" [(ngModel)]="editingBook.price" />
+        </div>
+
+        <div class="form-field">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="editingBook.stock" />
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="editingBook.isActive" />
+          Active book
+        </label>
+      </div>
+
+      <h4>Book Details</h4>
+
+      <div class="form-field">
+        <label>Image URL</label>
+        <input [(ngModel)]="editingBook.imageUrl" placeholder="Image URL" />
+      </div>
+
+      <div class="form-field">
+        <label>Description</label>
+        <textarea [(ngModel)]="editingBook.description" placeholder="Description"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" (click)="updateBook()">Save Changes</button>
+        <button class="btn-secondary" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <table class="books-table">
+    <thead>
+      <tr>
+        <th>Book</th>
+        <th>Author</th>
+        <th>Category</th>
+        <th>ISBN</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (book of filteredBooks; track book.id) {
+        <tr [class.inactive-row]="book.isActive === false">
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td>{{ book.category || '-' }}</td>
+          <td>{{ book.isbn || '-' }}</td>
+          <td>${{ book.price }}</td>
+          <td>{{ book.stock }}</td>
+          <td>
+            <span class="status-badge" [class.active]="book.isActive !== false" [class.inactive]="book.isActive === false">
+              {{ book.isActive !== false ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>
+            <button class="btn-edit" (click)="editBook(book)">Edit</button>
+            <button class="btn-delete" (click)="deleteBook(book)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

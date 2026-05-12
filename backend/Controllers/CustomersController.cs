@@ -1,8 +1,7 @@
-using Booksales.API.Common;
 using Booksales.API.Data;
-using Booksales.API.DTOs;
 using Booksales.API.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Booksales.API.Controllers;
 
@@ -18,80 +17,114 @@ public class CustomersController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetCustomers()
+    public IActionResult GetCustomers(string? search)
     {
-        var customers = _context.Set<Customer>()
-            .OrderByDescending(c => c.CreatedDate)
-            .ToList();
+        var query = _context.Customers.AsQueryable();
 
-        return Ok(customers);
-    }
-
-    [HttpGet("search")]
-    public IActionResult SearchCustomers([FromQuery] string? term)
-    {
-        if (string.IsNullOrWhiteSpace(term))
+        if (!string.IsNullOrWhiteSpace(search))
         {
-            return Ok(new List<Customer>());
+            var term = search.ToLower();
+
+            query = query.Where(c =>
+                c.Name.ToLower().Contains(term) ||
+                (c.Phone != null && c.Phone.ToLower().Contains(term)) ||
+                (c.Email != null && c.Email.ToLower().Contains(term))
+            );
         }
 
-        var normalized = term.Trim().ToLower();
-
-        var customers = _context.Set<Customer>()
-            .Where(c => c.Name.ToLower().Contains(normalized)
-                     || (c.Phone != null && c.Phone.ToLower().Contains(normalized))
-                     || (c.Email != null && c.Email.ToLower().Contains(normalized)))
-            .OrderByDescending(c => c.CreatedDate)
+        var customers = query
+            .OrderBy(c => c.Name)
             .ToList();
 
         return Ok(customers);
     }
 
     [HttpPost]
-    public IActionResult CreateCustomer([FromBody] Customer customer)
+    public IActionResult AddCustomer(Customer customer)
     {
-        if (customer == null)
-        {
-            return BadRequest("Customer data is required.");
-        }
-
         if (string.IsNullOrWhiteSpace(customer.Name))
         {
-            return BadRequest("Customer name is required.");
+            return BadRequest(new { message = "Customer name is required." });
         }
 
-        customer.Id = 0;
-        customer.Name = customer.Name.Trim();
         customer.CreatedDate = DateTime.UtcNow;
 
-        _context.Set<Customer>().Add(customer);
+        _context.Customers.Add(customer);
         _context.SaveChanges();
 
-        return CreatedAtAction(nameof(GetCustomers), new { id = customer.Id }, customer);
+        return Ok(customer);
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult UpdateCustomer(int id, Customer customer)
+    {
+        var existingCustomer = _context.Customers.Find(id);
+
+        if (existingCustomer == null)
+        {
+            return NotFound(new { message = "Customer not found." });
+        }
+
+        existingCustomer.Name = customer.Name;
+        existingCustomer.Phone = customer.Phone;
+        existingCustomer.Email = customer.Email;
+
+        _context.SaveChanges();
+
+        return Ok(existingCustomer);
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult DeleteCustomer(int id)
+    {
+        var customer = _context.Customers.Find(id);
+
+        if (customer == null)
+        {
+            return NotFound(new { message = "Customer not found." });
+        }
+
+        _context.Customers.Remove(customer);
+        _context.SaveChanges();
+
+        return Ok(new { message = "Customer deleted successfully." });
     }
 
     [HttpGet("{id}/summary")]
     public IActionResult GetCustomerSummary(int id)
     {
-        var customer = _context.Customers.FirstOrDefault(c => c.Id == id);
+        var customer = _context.Customers.Find(id);
 
         if (customer == null)
-            throw new NotFoundException($"Customer with ID {id} not found");
+        {
+            return NotFound(new { message = "Customer not found." });
+        }
 
         var sales = _context.Sales
+            .Include(s => s.Items)
+            .ThenInclude(i => i.Book)
             .Where(s => s.CustomerId == id)
+            .OrderByDescending(s => s.Date)
             .ToList();
 
-        var summary = new CustomerSummaryDto
+        var summary = new
         {
-            CustomerId = customer.Id,
-            CustomerName = customer.Name,
+            Customer = customer,
             TotalOrders = sales.Count,
             TotalSpent = sales.Sum(s => s.FinalTotal),
-            LastPurchaseDate = sales
-                .OrderByDescending(s => s.Date)
-                .Select(s => (DateTime?)s.Date)
-                .FirstOrDefault()
+            LastPurchaseDate = sales.FirstOrDefault()?.Date,
+            Orders = sales.Select(s => new
+            {
+                s.Id,
+                s.Date,
+                s.PaymentMethod,
+                s.FinalTotal,
+                Items = s.Items.Select(i => new
+                {
+                    BookTitle = i.Book != null ? i.Book.Title : "",
+                    i.Quantity
+                })
+            })
         };
 
         return Ok(summary);

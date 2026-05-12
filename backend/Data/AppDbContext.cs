@@ -23,5 +23,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Book>()
             .Property(b => b.Price)
             .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Sale>()
+            .Property(s => s.PaymentStatus)
+            .HasDefaultValue("Paid");
     }
 }

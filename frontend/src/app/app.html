@@ -1,30 +1,40 @@
 <header class="navbar">
-  <div class="nav-brand" (click)="view = 'shop'">Book Sales</div>
+  <div class="nav-brand" (click)="setView('shop')">Book Sales</div>
 
   <nav class="nav-links">
     <!-- Sales dropdown -->
     <div class="dropdown">
-      <button class="nav-btn">Sales &#9662;</button>
-      <div class="dropdown-menu">
-        <button (click)="goToNewSale()">New Sale</button>
-        <button (click)="goToOrders()">Orders</button>
-      </div>
+      <button class="nav-btn" (click)="toggleSales()">Sales &#9662;</button>
+      @if (isSalesOpen) {
+        <div class="dropdown-menu">
+          <button (click)="goToNewSale()">New Sale</button>
+          <button (click)="goToOrders()">Orders</button>
+        </div>
+      }
     </div>
 
     <!-- Shop -->
-    <button class="nav-btn" (click)="view = 'shop'">Shop</button>
+    <button class="nav-btn" (click)="setView('shop'); closeSales(); closeOperations()">Shop</button>
 
     <!-- Operations dropdown -->
     <div class="dropdown">
-      <button class="nav-btn">Operations &#9662;</button>
-      <div class="dropdown-menu">
-        <button (click)="goToInventory()">Inventory</button>
-        <button (click)="goToDashboard()">Dashboard</button>
-      </div>
+      <button class="nav-btn" (click)="toggleOperations()">
+        Operations &#9662;
+      </button>
+
+      @if (isOperationsOpen) {
+        <div class="dropdown-menu">
+          <button (click)="setView('add-book'); closeOperations()">Add Book</button>
+          <button (click)="setView('manage-books'); closeOperations()">Manage Books</button>
+          <button (click)="setView('inventory'); closeOperations()">Inventory</button>
+          <button (click)="setView('customers'); closeOperations()">Customers</button>
+          <button (click)="setView('dashboard'); closeOperations()">Dashboard</button>
+        </div>
+      }
     </div>
 
     <!-- Cart -->
-    <button class="nav-btn cart-btn" (click)="view = 'shop'">
+    <button class="nav-btn cart-btn" (click)="setView('shop')">
       Cart
       @if (cartCount$ | async; as count) {
         @if (count > 0) {
@@ -36,27 +46,39 @@
 </header>
 
 <main class="page-content">
-  @if (view === 'shop') {
+  @if (currentView === 'shop') {
     <app-book-list (checkoutSuccess)="goToReceipt()"></app-book-list>
   }
 
-  @if (view === 'orders') {
+  @if (currentView === 'add-book') {
+    <app-add-book></app-add-book>
+  }
+
+  @if (currentView === 'manage-books') {
+    <app-manage-books></app-manage-books>
+  }
+
+  @if (currentView === 'orders') {
     <app-orders></app-orders>
   }
 
-  @if (view === 'new-sale') {
+  @if (currentView === 'new-sale') {
     <app-new-sale (saleCompleted)="goToReceipt()"></app-new-sale>
   }
 
-  @if (view === 'receipt') {
+  @if (currentView === 'receipt') {
     <app-receipt></app-receipt>
   }
 
-  @if (view === 'inventory') {
+  @if (currentView === 'inventory') {
     <app-inventory></app-inventory>
   }
 
-  @if (view === 'dashboard') {
+  @if (currentView === 'dashboard') {
     <app-dashboard></app-dashboard>
+  }
+
+  @if (currentView === 'customers') {
+    <app-customers></app-customers>
   }
 </main>
