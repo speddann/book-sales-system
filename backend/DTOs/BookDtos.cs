@@ -1,0 +1,54 @@
+namespace Booksales.API.DTOs;
+
+public class BookPublicDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Author { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public string? ISBN { get; set; }
+    public string? Language { get; set; }
+    public string? ShortDescription { get; set; }
+    public string? LongDescription { get; set; }
+    public string? CoverImageUrl { get; set; }
+    public decimal Price { get; set; }
+    public decimal SellingPrice { get; set; }
+    public int Stock { get; set; }
+    public string Status { get; set; } = "Active";
+    public bool IsFeatured { get; set; }
+    public bool IsBookOfMonth { get; set; }
+    public bool IsNewArrival { get; set; }
+    public bool IsStaffPick { get; set; }
+}
+
+public class BookAdminDto : BookPublicDto
+{
+    public decimal CostPrice { get; set; }
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public class BookUpsertDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Author { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public string? ISBN { get; set; }
+    public string? Language { get; set; }
+    public string? ShortDescription { get; set; }
+    public string? LongDescription { get; set; }
+    public string? CoverImageUrl { get; set; }
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public decimal Price { get; set; }
+    public decimal CostPrice { get; set; }
+    public decimal SellingPrice { get; set; }
+    public int Stock { get; set; }
+    public string Status { get; set; } = "Active";
+    public bool IsActive { get; set; } = true;
+    public bool IsFeatured { get; set; }
+    public bool IsBookOfMonth { get; set; }
+    public bool IsNewArrival { get; set; }
+    public bool IsStaffPick { get; set; }
+}

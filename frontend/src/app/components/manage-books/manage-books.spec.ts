@@ -1,17 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { ManageBooks } from './manage-books';
+import { ManageBooksComponent } from './manage-books';
 
-describe('ManageBooks', () => {
-  let component: ManageBooks;
-  let fixture: ComponentFixture<ManageBooks>;
+describe('ManageBooksComponent', () => {
+  let component: ManageBooksComponent;
+  let fixture: ComponentFixture<ManageBooksComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ManageBooks],
+      imports: [ManageBooksComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ManageBooks);
+    fixture = TestBed.createComponent(ManageBooksComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

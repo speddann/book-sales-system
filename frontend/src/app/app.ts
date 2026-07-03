@@ -1,9 +1,6 @@
-import { Component, HostListener } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { BookListComponent } from './components/book-list/book-list';
 import { OrdersComponent } from './components/orders/orders';
-import { BookService } from './services/book';
-import { Observable, map } from 'rxjs';
 import { NewSaleComponent } from './components/new-sale/new-sale';
 import { ReceiptComponent } from './components/receipt/receipt';
 import { InventoryComponent } from './components/inventory/inventory';
@@ -11,6 +8,9 @@ import { DashboardComponent } from './components/dashboard/dashboard';
 import { AddBookComponent } from './components/add-book/add-book';
 import { ManageBooksComponent } from './components/manage-books/manage-books';
 import { CustomersComponent } from './components/customers/customers';
+import { HomeFeatureManagementComponent } from './components/home-feature-management/home-feature-management';
+import { AppShellComponent } from './components/app-shell/app-shell';
+import { AppView } from './components/app-shell/navigation.models';
 
 @Component({
   selector: 'app-root',
@@ -25,82 +25,66 @@ import { CustomersComponent } from './components/customers/customers';
     AddBookComponent,
     ManageBooksComponent,
     CustomersComponent,
-    AsyncPipe
+    HomeFeatureManagementComponent,
+    AppShellComponent
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class AppComponent {
-  currentView: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' | 'dashboard' | 'add-book' | 'manage-books' | 'customers' = 'shop';
-  isSalesOpen = false;
-  isOperationsOpen = false;
-  cartCount$: Observable<number>;
+export class AppComponent implements OnInit {
+  private readonly lastSelectedKey = 'bookSalesLastSelectedMenu';
+  currentView: AppView = 'dashboard';
 
-  constructor(private bookService: BookService) {
-    this.cartCount$ = this.bookService.cart$.pipe(
-      map(cart => cart.reduce((total, item) => total + item.quantity, 0))
-    );
+  ngOnInit(): void {
+    const savedView = localStorage.getItem(this.lastSelectedKey) as AppView | null;
+
+    if (savedView) {
+      this.setView(savedView);
+    }
   }
 
-  setView(view: 'shop' | 'new-sale' | 'orders' | 'receipt' | 'inventory' | 'dashboard' | 'add-book' | 'manage-books' | 'customers') {
+  setView(view: AppView) {
+    const placeholders: AppView[] = [
+      'returns',
+      'stock-history',
+      'bulk-import',
+      'categories',
+      'reports',
+      'users',
+      'settings',
+      'help'
+    ];
+
+    if (placeholders.includes(view)) {
+      this.currentView = 'dashboard';
+      return;
+    }
+
     this.currentView = view;
-  }
-
-  toggleSales(): void {
-    this.isSalesOpen = !this.isSalesOpen;
-    if (this.isSalesOpen) {
-      this.isOperationsOpen = false;
-    }
-  }
-
-  closeSales(): void {
-    this.isSalesOpen = false;
-  }
-
-  toggleOperations(): void {
-    this.isOperationsOpen = !this.isOperationsOpen;
-    if (this.isOperationsOpen) {
-      this.isSalesOpen = false;
-    }
-  }
-
-  closeOperations(): void {
-    this.isOperationsOpen = false;
-  }
-
-  @HostListener('document:click', ['$event'])
-  onClickOutside(event: Event): void {
-    const target = event.target as HTMLElement;
-
-    if (!target.closest('.dropdown')) {
-      this.isSalesOpen = false;
-      this.isOperationsOpen = false;
-    }
+    localStorage.setItem(this.lastSelectedKey, view);
   }
 
   goToOrders() {
-    this.closeSales();
     this.setView('orders');
   }
 
   goToNewSale() {
-    this.closeSales();
     this.setView('new-sale');
   }
 
   goToReceipt() {
-    this.closeSales();
-    this.closeOperations();
     this.setView('receipt');
   }
 
   goToInventory() {
-    this.closeOperations();
     this.setView('inventory');
   }
 
   goToDashboard() {
-    this.closeOperations();
     this.setView('dashboard');
+  }
+
+  goFromDashboard(view: Exclude<AppView, 'receipt'>) {
+    this.setView(view);
   }
 }

@@ -38,7 +38,11 @@ namespace Booksales.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("CostPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CoverImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -52,12 +56,41 @@ namespace Booksales.API.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsBookOfMonth")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsNewArrival")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsStaffPick")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LongDescription")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("SellingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ShortDescription")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Stock")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -108,10 +141,17 @@ namespace Booksales.API.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReasonCategory")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -120,6 +160,13 @@ namespace Booksales.API.Migrations
 
                     b.Property<int>("StockBefore")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
                         .IsRequired()

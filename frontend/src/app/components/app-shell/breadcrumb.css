@@ -1,0 +1,23 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  color: #667085;
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
+.breadcrumb span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumb .current {
+  color: #101828;
+  font-weight: 800;
+}
+
+.separator {
+  color: #98a2b3;
+}

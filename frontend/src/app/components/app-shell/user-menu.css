@@ -1,0 +1,77 @@
+.user-root {
+  position: relative;
+}
+
+.user-button {
+  min-height: 38px;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #344054;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 4px;
+}
+
+.user-button span,
+.user-card span {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #101828;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+
+.user-button b {
+  font-size: 0.84rem;
+}
+
+.user-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 230px;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.14);
+  padding: 8px;
+  z-index: 80;
+}
+
+.user-card {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  align-items: center;
+  border-bottom: 1px solid #eaecf0;
+  margin-bottom: 6px;
+}
+
+.user-card b,
+.user-card small {
+  display: block;
+}
+
+.user-card small {
+  color: #667085;
+}
+
+.user-menu button {
+  width: 100%;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #344054;
+  text-align: left;
+  padding: 9px 8px;
+}
+
+.user-menu button:hover {
+  background: #f9fafb;
+}

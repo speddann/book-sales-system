@@ -1,80 +1,197 @@
-<div class="dashboard-container">
-  <h2>Sales Dashboard</h2>
+<div class="dashboard-shell">
+  <header class="owner-header">
+    <div>
+      <p class="eyebrow">Owner Home</p>
+      <h1>Good Morning, Santosh</h1>
+      <p class="header-date">{{ today | date:'EEEE, MMMM d, y' }}</p>
+    </div>
+
+    <div class="header-actions">
+      <span class="status-pill">Store Open</span>
+      <span class="sync-text">Last sync {{ lastSyncTime | date:'shortTime' }}</span>
+      <button class="icon-button" type="button" aria-label="Notifications">!</button>
+      <button class="profile-button" type="button" aria-label="User profile">S</button>
+    </div>
+  </header>
 
   @if (loading()) {
-    <p class="loading-msg">Loading dashboard...</p>
+    <p class="loading-msg">Loading business dashboard...</p>
   }
 
   @if (error()) {
     <p class="error-msg">{{ error() }}</p>
   }
 
-  @if (dashboard(); as d) {
-    <!-- Revenue Cards -->
-    <section class="cards-section">
-      <h3>Revenue</h3>
-      <div class="cards">
-        <div class="card card-blue">
-          <span class="card-label">Today</span>
-          <span class="card-value">{{ d.revenueToday | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
-        </div>
-        <div class="card card-teal">
-          <span class="card-label">This Week</span>
-          <span class="card-value">{{ d.revenueThisWeek | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
-        </div>
-        <div class="card card-green">
-          <span class="card-label">This Month</span>
-          <span class="card-value">{{ d.revenueThisMonth | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
-        </div>
-      </div>
-    </section>
+  <section class="summary-grid" aria-label="Business summary">
+    @for (card of businessCardValues; track card.title) {
+      <app-dashboard-stat-card
+        [title]="card.title"
+        [value]="card.value"
+        [comparison]="card.comparison"
+        [icon]="card.icon"
+        (cardClick)="go(card.view)">
+      </app-dashboard-stat-card>
+    }
+  </section>
 
-    <!-- Sales Count Cards -->
-    <section class="cards-section">
-      <h3>Number of Sales</h3>
-      <div class="cards">
-        <div class="card card-blue">
-          <span class="card-label">Today</span>
-          <span class="card-value">{{ d.salesToday }}</span>
-        </div>
-        <div class="card card-teal">
-          <span class="card-label">This Week</span>
-          <span class="card-value">{{ d.salesThisWeek }}</span>
-        </div>
-        <div class="card card-green">
-          <span class="card-label">This Month</span>
-          <span class="card-value">{{ d.salesThisMonth }}</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Top Books -->
-    <section class="top-books-section">
-      <h3>Top 5 Selling Books</h3>
-      @if (d.topBooks.length === 0) {
-        <p>No sales data yet.</p>
-      } @else {
-        <table class="top-books-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Title</th>
-              <th>Units Sold</th>
-              <th>Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (book of d.topBooks; track book.title; let i = $index) {
-              <tr [class.top-row]="i === 0">
-                <td>{{ i + 1 }}</td>
-                <td>{{ book.title }}</td>
-                <td>{{ book.unitsSold }}</td>
-                <td>{{ book.revenue | currency:'CAD':'symbol-narrow':'1.2-2' }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+  <app-dashboard-panel title="Quick Actions" subtitle="Move through the store operations without opening menus.">
+    <div class="actions-grid">
+      @for (action of quickActions; track action.title) {
+        <app-dashboard-action-tile
+          [title]="action.title"
+          [description]="action.description"
+          [icon]="action.icon"
+          (actionClick)="go(action.view)">
+        </app-dashboard-action-tile>
       }
-    </section>
-  }
+    </div>
+  </app-dashboard-panel>
+
+  <section class="dashboard-grid two-column">
+    <app-dashboard-panel title="Business Health" subtitle="Placeholder health model for the owner view.">
+      <div class="health-score">
+        <div>
+          <span class="health-number">82</span>
+          <span class="health-label">Overall score</span>
+        </div>
+        <div class="health-ring" aria-hidden="true">82</div>
+      </div>
+
+      <div class="health-list">
+        @for (metric of healthMetrics; track metric.label) {
+          <div class="health-row">
+            <span>
+              <b>{{ metric.label }}</b>
+              <small>{{ metric.detail }}</small>
+            </span>
+            <span class="health-badge" [class]="metric.tone">{{ metric.value }}</span>
+          </div>
+        }
+      </div>
+    </app-dashboard-panel>
+
+    <app-dashboard-panel title="Recent Activity" subtitle="Operational timeline placeholder.">
+      <div class="timeline">
+        @for (item of activityItems; track item.title) {
+          <div class="timeline-item">
+            <span class="timeline-dot"></span>
+            <div>
+              <b>{{ item.title }}</b>
+              <p>{{ item.detail }}</p>
+              <small>{{ item.time }}</small>
+            </div>
+          </div>
+        }
+      </div>
+    </app-dashboard-panel>
+  </section>
+
+  <section class="dashboard-grid two-column">
+    <app-dashboard-panel title="Low Stock" subtitle="Compact reorder attention list.">
+      <button panel-action class="panel-link" type="button" (click)="go('inventory')">View All</button>
+
+      @if (lowStockBooks.length === 0) {
+        <p class="empty-state">No low stock books right now.</p>
+      } @else {
+        <div class="compact-table">
+          <div class="table-row table-head">
+            <span>Book</span>
+            <span>Current Stock</span>
+            <span>Suggested Reorder</span>
+          </div>
+          @for (book of lowStockBooks; track book.id) {
+            <div class="table-row">
+              <span>{{ book.title }}</span>
+              <span>{{ book.stock }}</span>
+              <span>{{ getSuggestedReorder(book.stock) }}</span>
+            </div>
+          }
+        </div>
+      }
+    </app-dashboard-panel>
+
+    <app-dashboard-panel title="Top Selling Books" subtitle="Live from the dashboard API.">
+      @if (topBooks.length === 0) {
+        <p class="empty-state">No sales data yet.</p>
+      } @else {
+        <div class="top-books-list">
+          @for (book of topBooks; track book.title; let i = $index) {
+            <div class="top-book-row">
+              <span class="rank">{{ i + 1 }}</span>
+              <span class="cover-placeholder">{{ book.title.slice(0, 1) }}</span>
+              <span class="book-meta">
+                <b>{{ book.title }}</b>
+                <small>{{ book.unitsSold }} units sold</small>
+              </span>
+              <span class="book-revenue">{{ book.revenue | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+      }
+    </app-dashboard-panel>
+  </section>
+
+  <section class="dashboard-grid two-column">
+    <app-dashboard-panel title="Recent Sales" subtitle="Uses sales data when available, placeholders otherwise.">
+      <div class="compact-table sales-table">
+        <div class="table-row table-head">
+          <span>Order #</span>
+          <span>Customer</span>
+          <span>Amount</span>
+          <span>Status</span>
+        </div>
+        @for (sale of recentSales(); track sale.orderNo) {
+          <div class="table-row">
+            <span>{{ sale.orderNo }}</span>
+            <span>{{ sale.customer }}</span>
+            <span>{{ sale.amount | currency:'CAD':'symbol-narrow':'1.2-2' }}</span>
+            <span>
+              <b>{{ sale.status }}</b>
+              <small>{{ sale.paymentMethod }} · {{ sale.time | date:'shortTime' }}</small>
+            </span>
+          </div>
+        }
+      </div>
+    </app-dashboard-panel>
+
+    <app-dashboard-panel title="Owner Notes" subtitle="Saved locally on this browser for now.">
+      <textarea
+        class="notes-box"
+        rows="7"
+        [(ngModel)]="ownerNotes"
+        placeholder="Write store notes, reminders, or daily priorities.">
+      </textarea>
+      <button class="primary-button" type="button" (click)="saveOwnerNotes()">Save Note</button>
+    </app-dashboard-panel>
+  </section>
+
+  <section class="dashboard-grid two-column">
+    <app-dashboard-panel title="Upcoming Reminders" subtitle="Placeholder reminders for the operating rhythm.">
+      <div class="reminder-list">
+        @for (reminder of reminders; track reminder.title) {
+          <div class="reminder-item">
+            <span>
+              <b>{{ reminder.title }}</b>
+              <small>{{ reminder.detail }}</small>
+            </span>
+            <em>{{ reminder.due }}</em>
+          </div>
+        }
+      </div>
+    </app-dashboard-panel>
+
+    <app-dashboard-panel title="Performance" subtitle="Chart placeholders until reporting is built.">
+      <div class="chart-placeholder">
+        <div class="bars" aria-hidden="true">
+          <span class="bar-one"></span>
+          <span class="bar-two"></span>
+          <span class="bar-three"></span>
+          <span class="bar-four"></span>
+          <span class="bar-five"></span>
+          <span class="bar-six"></span>
+        </div>
+        <p>Revenue trend, order volume, and category performance will appear here in Phase 2.</p>
+      </div>
+    </app-dashboard-panel>
+  </section>
 </div>

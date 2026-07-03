@@ -37,13 +37,13 @@ public class SalesService : ISalesService
             if (book == null)
                 throw new NotFoundException($"Book with ID {item.BookId} not found");
 
-            if (!book.IsActive)
+            if (!IsSellable(book))
                 throw new BusinessException($"{book.Title} is inactive and cannot be sold.");
 
             if (book.Stock < item.Quantity)
                 throw new BusinessException($"Not enough stock for '{book.Title}'. Available: {book.Stock}");
 
-            subtotal += book.Price * item.Quantity;
+            subtotal += GetSellingPrice(book) * item.Quantity;
             book.Stock -= item.Quantity;
         }
 
@@ -86,7 +86,7 @@ public class SalesService : ISalesService
             {
                 SaleItemId = i.Id,
                 BookTitle = i.Book!.Title,
-                Price = i.Book!.Price,
+                Price = GetSellingPrice(i.Book!),
                 Quantity = i.Quantity,
                 ReturnedQuantity = i.ReturnedQuantity
             }).ToList()
@@ -171,7 +171,7 @@ public class SalesService : ISalesService
                 {
                     SaleItemId = i.Id,
                     BookTitle = i.Book!.Title,
-                    Price = i.Book!.Price,
+                    Price = GetSellingPrice(i.Book!),
                     Quantity = i.Quantity,
                     ReturnedQuantity = i.ReturnedQuantity
                 }).ToList()
@@ -250,7 +250,7 @@ public class SalesService : ISalesService
                 {
                     SaleItemId = i.Id,
                     BookTitle = i.Book!.Title,
-                    Price = i.Book!.Price,
+                    Price = GetSellingPrice(i.Book!),
                     Quantity = i.Quantity,
                     ReturnedQuantity = i.ReturnedQuantity
                 }).ToList()
@@ -337,12 +337,12 @@ public class SalesService : ISalesService
         var topBooks = _context.SaleItems
             .Include(si => si.Book)
             .Where(si => si.Sale!.Status != "Returned")
-            .GroupBy(si => new { si.BookId, si.Book!.Title, si.Book!.Price })
+            .GroupBy(si => new { si.BookId, si.Book!.Title, SellingPrice = si.Book!.SellingPrice > 0 ? si.Book.SellingPrice : si.Book.Price })
             .Select(g => new TopBookDto
             {
                 Title     = g.Key.Title,
                 UnitsSold = g.Sum(i => i.Quantity),
-                Revenue   = g.Sum(i => i.Quantity * g.Key.Price)
+                Revenue   = g.Sum(i => i.Quantity * g.Key.SellingPrice)
             })
             .OrderByDescending(x => x.UnitsSold)
             .Take(5)
@@ -391,8 +391,8 @@ public class SalesService : ISalesService
             {
                 BookTitle = i.Book?.Title,
                 i.Quantity,
-                Price = i.Book?.Price,
-                LineTotal = (i.Book?.Price ?? 0) * i.Quantity
+                Price = i.Book == null ? 0 : GetSellingPrice(i.Book),
+                LineTotal = (i.Book == null ? 0 : GetSellingPrice(i.Book)) * i.Quantity
             })
         };
 
@@ -402,5 +402,15 @@ public class SalesService : ISalesService
             Message = $"Receipt email prepared for {email}. SMTP integration pending.",
             Data = receiptPreview
         };
+    }
+
+    private static decimal GetSellingPrice(Book book)
+    {
+        return book.SellingPrice > 0 ? book.SellingPrice : book.Price;
+    }
+
+    private static bool IsSellable(Book book)
+    {
+        return book.Status == "Active" || (string.IsNullOrWhiteSpace(book.Status) && book.IsActive);
     }
 }

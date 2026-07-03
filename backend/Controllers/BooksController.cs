@@ -1,5 +1,4 @@
 using Booksales.API.Common;
-using Booksales.API.Models;
 using Booksales.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Booksales.API.DTOs;
@@ -25,6 +24,25 @@ public class BooksController : ControllerBase
         return Ok(result);
     }
 
+    // GET: api/books/public
+    [HttpGet("public")]
+    public IActionResult GetPublic()
+    {
+        var result = _bookService.GetPublicBooks();
+        return Ok(result);
+    }
+
+    // GET: api/books/public/5
+    [HttpGet("public/{id:int}")]
+    public IActionResult GetPublicById(int id)
+    {
+        if (id <= 0)
+            throw new BusinessException("Id must be greater than zero");
+
+        var result = _bookService.GetPublicBookById(id);
+        return Ok(result);
+    }
+
     // GET: api/books/5
     [HttpGet("{id:int}")]
     public IActionResult GetById(int id)
@@ -38,7 +56,7 @@ public class BooksController : ControllerBase
 
     // POST: api/books
     [HttpPost]
-    public IActionResult Add(Book book)
+    public IActionResult Add(BookUpsertDto book)
     {
         var result = _bookService.AddBook(book);
         return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result);
@@ -46,7 +64,7 @@ public class BooksController : ControllerBase
 
     // PUT: api/books/5
     [HttpPut("{id:int}")]
-    public IActionResult UpdateBook(int id, Book book)
+    public IActionResult UpdateBook(int id, BookUpsertDto book)
     {
         if (id <= 0)
             throw new BusinessException("Id must be greater than zero");
@@ -85,6 +103,35 @@ public class BooksController : ControllerBase
     )
     {
         var result = _bookService.GetInventoryHistory(bookId, type, startDate, endDate);
+        return Ok(result);
+    }
+
+    [HttpGet("inventory-import/template")]
+    public IActionResult DownloadInventoryImportTemplate([FromQuery] string type = "current")
+    {
+        var includeCurrentInventory = !type.Equals("blank", StringComparison.OrdinalIgnoreCase);
+        var file = _bookService.GenerateInventoryImportTemplate(includeCurrentInventory);
+        var fileName = includeCurrentInventory
+            ? "current-inventory-import-template.xlsx"
+            : "blank-inventory-import-template.xlsx";
+
+        return File(
+            file,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName);
+    }
+
+    [HttpPost("inventory-import/preview")]
+    public IActionResult PreviewInventoryImport([FromForm] IFormFile file)
+    {
+        var result = _bookService.PreviewInventoryImport(file);
+        return Ok(result);
+    }
+
+    [HttpPost("inventory-import/confirm")]
+    public IActionResult ConfirmInventoryImport(InventoryImportConfirmRequest request)
+    {
+        var result = _bookService.ConfirmInventoryImport(request);
         return Ok(result);
     }
 }

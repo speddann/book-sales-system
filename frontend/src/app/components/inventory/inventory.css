@@ -2,6 +2,7 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  font-size: 13px;
 }
 
 .history-table {
@@ -43,8 +44,17 @@
 .inventory-table input,
 .inventory-table select {
   padding: 6px;
+  min-width: 120px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.inventory-table input[type="number"] {
+  min-width: 80px;
+}
+
+.inventory-table input[type="date"] {
+  min-width: 140px;
 }
 
 .success {
@@ -57,6 +67,92 @@
 
 .history-section {
   margin-top: 28px;
+}
+
+.bulk-import-section {
+  margin: 20px 0 28px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.bulk-import-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.bulk-import-actions input,
+.bulk-import-actions button {
+  padding: 8px 10px;
+}
+
+.import-summary {
+  display: flex;
+  gap: 16px;
+  margin: 10px 0;
+  font-weight: 700;
+}
+
+.import-summary-error {
+  color: #a40000;
+}
+
+.manual-adjustment-section {
+  margin: 28px 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.manual-search-grid,
+.manual-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.manual-search-grid label,
+.manual-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.manual-search-grid input,
+.manual-search-grid select,
+.manual-form-grid input,
+.manual-form-grid select {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.manual-book-card {
+  margin-top: 16px;
+  border-top: 1px solid #eee;
+  padding-top: 16px;
+}
+
+.manual-book-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.manual-notes {
+  grid-column: span 2;
+}
+
+.manual-form-grid button {
+  align-self: end;
+  padding: 9px 12px;
 }
 
 .history-filters {
@@ -80,4 +176,19 @@
 .low-stock-row td {
   color: #a40000;
   font-weight: 600;
+}
+
+.import-error-row {
+  background-color: #fff3f3;
+}
+
+@media (max-width: 800px) {
+  .manual-search-grid,
+  .manual-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-notes {
+    grid-column: span 1;
+  }
 }

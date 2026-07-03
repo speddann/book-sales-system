@@ -107,7 +107,7 @@
             <div class="book-info">
               <b>{{ book.title }}</b>
               <span class="text-muted">{{ book.author }}</span>
-              <span class="price-tag">${{ book.price }}</span>
+              <span class="price-tag">${{ bookService.getSellingPrice(book) }}</span>
             </div>
             <div class="book-row-right">
               <span class="stock-tag"
@@ -147,13 +147,13 @@
           <div class="cart-row">
             <div class="cart-item-info">
               <b>{{ item.book.title }}</b>
-              <span class="text-muted">${{ item.book.price }} each</span>
+              <span class="text-muted">${{ bookService.getSellingPrice(item.book) }} each</span>
             </div>
             <div class="cart-item-controls">
               <button class="qty-btn" (click)="decreaseQuantity(item.book.id!)">&#8722;</button>
               <span class="qty">{{ item.quantity }}</span>
               <button class="qty-btn" (click)="addToSale(item.book)">+</button>
-              <span class="item-total">${{ (item.book.price * item.quantity) | number:'1.2-2' }}</span>
+              <span class="item-total">${{ (bookService.getSellingPrice(item.book) * item.quantity) | number:'1.2-2' }}</span>
               <button class="remove-btn" (click)="removeItem(item.book.id!)">&times;</button>
             </div>
           </div>

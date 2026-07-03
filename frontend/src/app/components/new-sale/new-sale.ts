@@ -1,10 +1,10 @@
 import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BookService, Book, Customer } from '../../services/book';
+import { BookService, BookAdminDto, Customer } from '../../services/book';
 import { DatePipe, DecimalPipe } from '@angular/common';
 
 interface SaleCartItem {
-  book: Book;
+  book: BookAdminDto;
   quantity: number;
 }
 
@@ -18,7 +18,7 @@ interface SaleCartItem {
 export class NewSaleComponent implements OnInit {
   @Output() saleCompleted = new EventEmitter<void>();
 
-  books = signal<Book[]>([]);
+  books = signal<BookAdminDto[]>([]);
   customers = signal<Customer[]>([]);
   searchText: string = '';
   customerSearchText: string = '';
@@ -44,7 +44,7 @@ export class NewSaleComponent implements OnInit {
     email: ''
   };
 
-  constructor(private bookService: BookService) {}
+  constructor(public bookService: BookService) {}
 
   ngOnInit(): void {
     this.loadBooks();
@@ -112,12 +112,12 @@ export class NewSaleComponent implements OnInit {
   }
 
   loadBooks(): void {
-    this.bookService.getBooks().subscribe(data => {
-      this.books.set(data.filter(book => book.isActive !== false));
+    this.bookService.getAdminBooks().subscribe(data => {
+      this.books.set(data.filter(book => this.bookService.isSellable(book)));
     });
   }
 
-  get filteredBooks(): Book[] {
+  get filteredBooks(): BookAdminDto[] {
     const search = this.searchText.toLowerCase().trim();
 
     if (!search) {
@@ -130,10 +130,10 @@ export class NewSaleComponent implements OnInit {
     );
   }
 
-  addToSale(book: Book): void {
+  addToSale(book: BookAdminDto): void {
     if (!book.id) return;
 
-    if (book.isActive === false) {
+    if (!this.bookService.isSellable(book)) {
       alert('This book is inactive and cannot be sold.');
       return;
     }
@@ -172,7 +172,7 @@ export class NewSaleComponent implements OnInit {
 
   getSubtotal(): number {
     return this.saleCart.reduce((total, item) => {
-      return total + item.book.price * item.quantity;
+      return total + this.bookService.getSellingPrice(item.book) * item.quantity;
     }, 0);
   }
 
@@ -220,8 +220,8 @@ export class NewSaleComponent implements OnInit {
         const receiptItems = this.saleCart.map(item => ({
           title: item.book.title,
           quantity: item.quantity,
-          price: item.book.price,
-          total: item.book.price * item.quantity
+          price: this.bookService.getSellingPrice(item.book),
+          total: this.bookService.getSellingPrice(item.book) * item.quantity
         }));
 
         this.lastCompletedSale = {

@@ -1,17 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { NewSale } from './new-sale';
+import { NewSaleComponent } from './new-sale';
 
-describe('NewSale', () => {
-  let component: NewSale;
-  let fixture: ComponentFixture<NewSale>;
+describe('NewSaleComponent', () => {
+  let component: NewSaleComponent;
+  let fixture: ComponentFixture<NewSaleComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NewSale],
+      imports: [NewSaleComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(NewSale);
+    fixture = TestBed.createComponent(NewSaleComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
