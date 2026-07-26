@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BookService, Book } from '../../services/book';
+import { BookService, BookUpsertDto } from '../../services/book';
 
 @Component({
   selector: 'app-add-book',
@@ -23,17 +23,24 @@ export class AddBookComponent {
     'Other'
   ];
 
-  newBook: Book = {
+  newBook: BookUpsertDto = {
     title: '',
     author: '',
     category: '',
     isbn: '',
-    description: '',
-    imageUrl: '',
-    price: 0,
+    language: '',
+    shortDescription: '',
+    longDescription: '',
+    coverImageUrl: '',
+    sellingPrice: 0,
     costPrice: 0,
     stock: 0,
-    isActive: true
+    status: 'Active',
+    isActive: true,
+    isFeatured: false,
+    isBookOfMonth: false,
+    isNewArrival: false,
+    isStaffPick: false
   };
 
   message = '';
@@ -52,8 +59,13 @@ export class AddBookComponent {
       return;
     }
 
-    if (this.newBook.price <= 0) {
-      this.error = 'Price must be greater than 0.';
+    if ((this.newBook.sellingPrice ?? 0) < 0) {
+      this.error = 'Selling price cannot be negative.';
+      return;
+    }
+
+    if ((this.newBook.costPrice ?? 0) < 0) {
+      this.error = 'Cost price cannot be negative.';
       return;
     }
 
@@ -71,12 +83,19 @@ export class AddBookComponent {
           author: '',
           category: '',
           isbn: '',
-          description: '',
-          imageUrl: '',
-          price: 0,
+          language: '',
+          shortDescription: '',
+          longDescription: '',
+          coverImageUrl: '',
+          sellingPrice: 0,
           costPrice: 0,
           stock: 0,
-          isActive: true
+          status: 'Active',
+          isActive: true,
+          isFeatured: false,
+          isBookOfMonth: false,
+          isNewArrival: false,
+          isStaffPick: false
         };
       },
       error: () => {

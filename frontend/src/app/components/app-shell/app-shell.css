@@ -1,0 +1,33 @@
+.app-shell {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.shell-body {
+  min-height: 100vh;
+  margin-left: 280px;
+  transition: margin-left 0.22s ease;
+}
+
+.sidebar-collapsed .shell-body {
+  margin-left: 82px;
+}
+
+.shell-content {
+  height: calc(100vh - 68px);
+  overflow: auto;
+  padding: 0;
+}
+
+@media (max-width: 980px) {
+  .shell-content {
+    height: calc(100vh - 138px);
+  }
+}
+
+@media (max-width: 760px) {
+  .shell-body,
+  .sidebar-collapsed .shell-body {
+    margin-left: 0;
+  }
+}

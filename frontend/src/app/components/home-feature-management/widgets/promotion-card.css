@@ -1,0 +1,67 @@
+.promotion-card {
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.promotion-card h3 {
+  margin: 10px 0 4px;
+  color: #101828;
+  font-size: 1rem;
+}
+
+.promotion-card p {
+  margin: 0;
+  color: #344054;
+  font-weight: 700;
+}
+
+.promotion-card small {
+  display: block;
+  margin-top: 6px;
+  color: #667085;
+}
+
+.status-pill {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 9px;
+  background: #ecfdf3;
+  color: #027a48;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.promotion-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.promotion-actions button {
+  min-height: 34px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #344054;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .promotion-card {
+    flex-direction: column;
+  }
+
+  .promotion-actions {
+    justify-content: flex-start;
+  }
+}

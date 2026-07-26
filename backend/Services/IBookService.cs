@@ -1,18 +1,23 @@
 using Booksales.API.Common;
-using Booksales.API.Models;
 using Booksales.API.DTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace Booksales.API.Services;
 
 public interface IBookService
 {
-    CommonResponse<Book> GetBookById(int id);
-    CommonResponse<List<Book>> GetAllBooks();
-    CommonResponse<Book> AddBook(Book book);
-    CommonResponse<Book> UpdateBook(int id, Book book);
+    CommonResponse<BookAdminDto> GetBookById(int id);
+    CommonResponse<List<BookAdminDto>> GetAllBooks();
+    CommonResponse<BookPublicDto> GetPublicBookById(int id);
+    CommonResponse<List<BookPublicDto>> GetPublicBooks();
+    CommonResponse<BookAdminDto> AddBook(BookUpsertDto book);
+    CommonResponse<BookAdminDto> UpdateBook(int id, BookUpsertDto book);
     CommonResponse<string> DeleteBook(int id);
 
-    CommonResponse<Book> AdjustStock(int id, StockAdjustmentDto request);
+    CommonResponse<BookAdminDto> AdjustStock(int id, StockAdjustmentDto request);
+    InventoryImportPreviewResponse PreviewInventoryImport(IFormFile file);
+    CommonResponse<InventoryImportResultDto> ConfirmInventoryImport(InventoryImportConfirmRequest request);
+    byte[] GenerateInventoryImportTemplate(bool includeCurrentInventory);
     List<InventoryTransactionDto> GetInventoryHistory(
         int? bookId,
         string? type,

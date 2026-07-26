@@ -37,6 +37,11 @@
 				<label>ISBN</label>
 				<input [(ngModel)]="newBook.isbn" placeholder="ISBN number" />
 			</div>
+
+			<div class="form-field">
+				<label>Language</label>
+				<input [(ngModel)]="newBook.language" placeholder="Language" />
+			</div>
 		</div>
 
 		<h3>Pricing & Inventory</h3>
@@ -49,7 +54,7 @@
 
 			<div class="form-field">
 				<label>Selling Price</label>
-				<input type="number" [(ngModel)]="newBook.price" />
+				<input type="number" [(ngModel)]="newBook.sellingPrice" />
 			</div>
 
 			<div class="form-field">
@@ -57,22 +62,55 @@
 				<input type="number" [(ngModel)]="newBook.stock" />
 			</div>
 
-			<label class="checkbox-row">
-				<input type="checkbox" [(ngModel)]="newBook.isActive" />
-				Active book
-			</label>
+			<div class="form-field">
+				<label>Status</label>
+				<select [(ngModel)]="newBook.status">
+					<option value="Active">Active</option>
+					<option value="Inactive">Inactive</option>
+					<option value="Archived">Archived</option>
+				</select>
+			</div>
 		</div>
 
 		<h3>Book Details</h3>
 
 		<div class="form-field">
-			<label>Image URL</label>
-			<input [(ngModel)]="newBook.imageUrl" placeholder="Book cover image URL" />
+			<label>Cover Image URL</label>
+			<input [(ngModel)]="newBook.coverImageUrl" placeholder="Book cover image URL" />
 		</div>
 
 		<div class="form-field">
-			<label>Description</label>
-			<textarea [(ngModel)]="newBook.description" placeholder="Short book description"></textarea>
+			<label>Short Description</label>
+			<textarea [(ngModel)]="newBook.shortDescription" placeholder="Short book description"></textarea>
+		</div>
+
+		<div class="form-field">
+			<label>Long Description</label>
+			<textarea [(ngModel)]="newBook.longDescription" placeholder="Detailed book description"></textarea>
+		</div>
+
+		<h3>Catalog Flags</h3>
+
+		<div class="flag-grid">
+			<label class="checkbox-row">
+				<input type="checkbox" [(ngModel)]="newBook.isFeatured" />
+				Featured
+			</label>
+
+			<label class="checkbox-row">
+				<input type="checkbox" [(ngModel)]="newBook.isBookOfMonth" />
+				Book of Month
+			</label>
+
+			<label class="checkbox-row">
+				<input type="checkbox" [(ngModel)]="newBook.isNewArrival" />
+				New Arrival
+			</label>
+
+			<label class="checkbox-row">
+				<input type="checkbox" [(ngModel)]="newBook.isStaffPick" />
+				Staff Pick
+			</label>
 		</div>
 
 		<div class="form-actions">

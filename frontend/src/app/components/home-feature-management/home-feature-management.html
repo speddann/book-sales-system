@@ -1,0 +1,280 @@
+<div class="home-feature-shell">
+  <header class="feature-header">
+    <div>
+      <p class="eyebrow">Owner Control Panel</p>
+      <h1>Home Feature Management</h1>
+      <p>Control everything your customers see.</p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="secondary-button" (click)="previewCustomerHome()">Preview Customer Home</button>
+      <button type="button" class="secondary-button" [disabled]="!hasUnsavedChanges" (click)="discardChanges()">Discard Changes</button>
+      <button type="button" class="primary-button" (click)="saveChanges()">Save Changes</button>
+    </div>
+  </header>
+
+  @if (message) {
+    <p class="notice">{{ message }}</p>
+  }
+
+  <section class="management-panel">
+    <div class="section-heading">
+      <div>
+        <h2>Homepage Sections</h2>
+        <p>Choose which customer homepage sections are visible and how each section is managed.</p>
+      </div>
+      <span class="dirty-pill">{{ hasUnsavedChanges ? 'Unsaved changes' : 'Saved locally' }}</span>
+    </div>
+
+    <div class="section-card-grid">
+      @for (section of state().sections; track section.id) {
+        <app-home-section-card
+          [section]="section"
+          (changed)="markDirty()"
+          (edit)="editSection($event)">
+        </app-home-section-card>
+      }
+    </div>
+  </section>
+
+  <section class="content-grid">
+    <div class="management-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Featured Books</h2>
+          <p>Search, select, remove, and reorder customer-facing featured books.</p>
+        </div>
+        <span class="limit-pill">{{ selectedFeaturedBooks.length }} / {{ maximumFeaturedBooks }}</span>
+      </div>
+
+      <div class="book-search">
+        <label>
+          Search books
+          <input
+            type="search"
+            placeholder="Title, author, category, or ISBN"
+            [(ngModel)]="searchText"
+          />
+        </label>
+      </div>
+
+      <div class="book-picker">
+        @for (book of filteredBooks; track book.id) {
+          <button type="button" class="candidate-book" (click)="addFeaturedBook(book)">
+            <span class="mini-cover">{{ getBookInitial(book.title) }}</span>
+            <span>
+              <b>{{ book.title }}</b>
+              <small>{{ book.author }} · {{ book.category || 'Uncategorized' }}</small>
+            </span>
+            <em>Add</em>
+          </button>
+        }
+      </div>
+
+      <div class="selected-books">
+        @if (selectedFeaturedBooks.length === 0) {
+          <p class="empty-state">No featured books selected yet.</p>
+        }
+
+        @for (book of selectedFeaturedBooks; track book.id; let i = $index) {
+          <app-selected-book-row
+            [book]="book"
+            (moveUp)="moveFeaturedBook(i, -1)"
+            (moveDown)="moveFeaturedBook(i, 1)"
+            (remove)="removeFeaturedBook(book.id)">
+          </app-selected-book-row>
+        }
+      </div>
+    </div>
+
+    <div class="management-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Promotion Manager</h2>
+          <p>Create and maintain customer homepage campaign cards.</p>
+        </div>
+        <button type="button" class="primary-button compact" (click)="createPromotion()">Create New Promotion</button>
+      </div>
+
+      <div class="promotion-list">
+        @for (promotion of state().promotions; track promotion.id) {
+          <app-promotion-card
+            [promotion]="promotion"
+            (edit)="editPromotion($event)"
+            (duplicate)="duplicatePromotion($event)"
+            (archive)="archivePromotion($event)">
+          </app-promotion-card>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="content-grid editor-grid">
+    <div class="management-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Promotion Editor</h2>
+          <p>Configure the selected promotion banner. Publishing is local-only in this phase.</p>
+        </div>
+        <span class="status-pill">{{ activePromotion.status }}</span>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Promotion Name
+          <input [ngModel]="activePromotion.name" (ngModelChange)="updateActivePromotion('name', $event)" />
+        </label>
+
+        <label>
+          Banner Title
+          <input [ngModel]="activePromotion.bannerTitle" (ngModelChange)="updateActivePromotion('bannerTitle', $event)" />
+        </label>
+
+        <label class="wide-field">
+          Banner Subtitle
+          <input [ngModel]="activePromotion.bannerSubtitle" (ngModelChange)="updateActivePromotion('bannerSubtitle', $event)" />
+        </label>
+
+        <label>
+          Banner Image URL
+          <input [ngModel]="activePromotion.bannerImageUrl" (ngModelChange)="updateActivePromotion('bannerImageUrl', $event)" />
+        </label>
+
+        <label>
+          Button Text
+          <input [ngModel]="activePromotion.buttonText" (ngModelChange)="updateActivePromotion('buttonText', $event)" />
+        </label>
+
+        <label>
+          Button Link
+          <input [ngModel]="activePromotion.buttonLink" (ngModelChange)="updateActivePromotion('buttonLink', $event)" />
+        </label>
+
+        <label>
+          Start Date
+          <input type="date" [ngModel]="activePromotion.startDate" (ngModelChange)="updateActivePromotion('startDate', $event)" />
+        </label>
+
+        <label>
+          End Date
+          <input type="date" [ngModel]="activePromotion.endDate" (ngModelChange)="updateActivePromotion('endDate', $event)" />
+        </label>
+
+        <label>
+          Status
+          <select [ngModel]="activePromotion.status" (ngModelChange)="updateActivePromotion('status', $event)">
+            <option value="Draft">Draft</option>
+            <option value="Scheduled">Scheduled</option>
+            <option value="Active">Active</option>
+            <option value="Expired">Expired</option>
+            <option value="Hidden">Hidden</option>
+            <option value="Archived">Archived</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="included-books">
+        <h3>Books Included</h3>
+        <div class="included-book-grid">
+          @for (book of books().slice(0, 10); track book.id) {
+            <label class="check-card">
+              <input
+                type="checkbox"
+                [checked]="isPromotionBookSelected(book.id)"
+                (change)="togglePromotionBook(book.id)"
+              />
+              <span>
+                <b>{{ book.title }}</b>
+                <small>{{ book.author }}</small>
+              </span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="banner-preview">
+        <span class="banner-kicker">Preview Banner</span>
+        <h3>{{ activePromotion.bannerTitle }}</h3>
+        <p>{{ activePromotion.bannerSubtitle }}</p>
+        <button type="button">{{ activePromotion.buttonText || 'Shop Now' }}</button>
+      </div>
+    </div>
+
+    <div class="management-panel phone-panel" [class.preview-focus]="previewFocused">
+      <div class="section-heading">
+        <div>
+          <h2>Homepage Preview</h2>
+          <p>Phone-sized customer home preview using mock layout data.</p>
+        </div>
+      </div>
+
+      <div class="phone-preview">
+        <div class="phone-header">
+          <span>Book Sales</span>
+          <button type="button">Cart</button>
+        </div>
+
+        <section class="phone-hero">
+          <span>Featured Book</span>
+          <h3>{{ selectedFeaturedBooks[0]?.title || 'Select a featured book' }}</h3>
+          <p>{{ selectedFeaturedBooks[0]?.author || 'Featured author' }}</p>
+        </section>
+
+        <section class="phone-banner">
+          <small>Promotion</small>
+          <h3>{{ previewPromotion.bannerTitle }}</h3>
+          <p>{{ previewPromotion.bannerSubtitle }}</p>
+        </section>
+
+        <section class="phone-list">
+          <h4>Top Sellers</h4>
+          @for (book of topSellersPreview; track book.id) {
+            <div><span>{{ getBookInitial(book.title) }}</span>{{ book.title }}</div>
+          }
+        </section>
+
+        <section class="phone-list">
+          <h4>New Arrivals</h4>
+          @for (book of newArrivalsPreview; track book.id) {
+            <div><span>{{ getBookInitial(book.title) }}</span>{{ book.title }}</div>
+          }
+        </section>
+
+        <section class="phone-list">
+          <h4>Staff Picks</h4>
+          @for (book of staffPicksPreview; track book.id) {
+            <div><span>{{ getBookInitial(book.title) }}</span>{{ book.title }}</div>
+          }
+        </section>
+
+        <section class="phone-categories">
+          <h4>Categories</h4>
+          <div>
+            <span>Fiction</span>
+            <span>Business</span>
+            <span>Spirituality</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="management-panel">
+    <div class="section-heading">
+      <div>
+        <h2>Future Sections</h2>
+        <p>Reserved customer-home modules for later phases.</p>
+      </div>
+    </div>
+
+    <div class="future-grid">
+      @for (future of futureSections; track future.title) {
+        <article class="future-card">
+          <h3>{{ future.title }}</h3>
+          <p>{{ future.detail }}</p>
+          <span>Planned</span>
+        </article>
+      }
+    </div>
+  </section>
+</div>

@@ -1,0 +1,77 @@
+.selected-book {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.book-cover {
+  width: 44px;
+  height: 56px;
+  border-radius: 6px;
+  background: #101828;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+
+.book-info {
+  min-width: 0;
+}
+
+.book-info b,
+.book-info small {
+  display: block;
+}
+
+.book-info b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-info small {
+  margin-top: 3px;
+  color: #667085;
+  font-size: 0.78rem;
+}
+
+.book-price {
+  color: #101828;
+  font-weight: 900;
+}
+
+.book-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.book-actions button {
+  min-height: 32px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #344054;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .selected-book {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .book-price,
+  .book-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}

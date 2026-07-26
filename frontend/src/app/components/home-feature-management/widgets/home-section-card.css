@@ -1,0 +1,68 @@
+.section-card {
+  min-height: 230px;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.section-card h3 {
+  margin: 0;
+  color: #101828;
+  font-size: 1rem;
+}
+
+.section-card p {
+  min-height: 38px;
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.section-card label {
+  color: #475467;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.section-card select {
+  min-height: 36px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #101828;
+  padding: 0 10px;
+}
+
+.toggle-row {
+  flex-direction: row !important;
+  align-items: center;
+}
+
+.toggle-row input {
+  width: 18px;
+  height: 18px;
+}
+
+.ghost-button {
+  min-height: 36px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #344054;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.ghost-button:hover {
+  border-color: #98a2b3;
+  background: #f9fafb;
+}

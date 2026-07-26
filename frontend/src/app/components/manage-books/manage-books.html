@@ -25,8 +25,9 @@
 
     <select [(ngModel)]="statusFilter">
       <option value="all">All Status</option>
-      <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+      <option value="Archived">Archived</option>
     </select>
 
     <select [(ngModel)]="sortBy">
@@ -71,6 +72,11 @@
           <label>ISBN</label>
           <input [(ngModel)]="editingBook.isbn" placeholder="ISBN" />
         </div>
+
+        <div class="form-field">
+          <label>Language</label>
+          <input [(ngModel)]="editingBook.language" placeholder="Language" />
+        </div>
       </div>
 
       <h4>Pricing & Inventory</h4>
@@ -83,7 +89,7 @@
 
         <div class="form-field">
           <label>Selling Price</label>
-          <input type="number" [(ngModel)]="editingBook.price" />
+          <input type="number" [(ngModel)]="editingBook.sellingPrice" />
         </div>
 
         <div class="form-field">
@@ -91,22 +97,55 @@
           <input type="number" [(ngModel)]="editingBook.stock" />
         </div>
 
-        <label class="checkbox-row">
-          <input type="checkbox" [(ngModel)]="editingBook.isActive" />
-          Active book
-        </label>
+        <div class="form-field">
+          <label>Status</label>
+          <select [(ngModel)]="editingBook.status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Archived">Archived</option>
+          </select>
+        </div>
       </div>
 
       <h4>Book Details</h4>
 
       <div class="form-field">
-        <label>Image URL</label>
-        <input [(ngModel)]="editingBook.imageUrl" placeholder="Image URL" />
+        <label>Cover Image URL</label>
+        <input [(ngModel)]="editingBook.coverImageUrl" placeholder="Cover image URL" />
       </div>
 
       <div class="form-field">
-        <label>Description</label>
-        <textarea [(ngModel)]="editingBook.description" placeholder="Description"></textarea>
+        <label>Short Description</label>
+        <textarea [(ngModel)]="editingBook.shortDescription" placeholder="Short description"></textarea>
+      </div>
+
+      <div class="form-field">
+        <label>Long Description</label>
+        <textarea [(ngModel)]="editingBook.longDescription" placeholder="Long description"></textarea>
+      </div>
+
+      <h4>Catalog Flags</h4>
+
+      <div class="flag-grid">
+        <label class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="editingBook.isFeatured" />
+          Featured
+        </label>
+
+        <label class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="editingBook.isBookOfMonth" />
+          Book of Month
+        </label>
+
+        <label class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="editingBook.isNewArrival" />
+          New Arrival
+        </label>
+
+        <label class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="editingBook.isStaffPick" />
+          Staff Pick
+        </label>
       </div>
 
       <div class="form-actions">
@@ -122,8 +161,9 @@
         <th>Book</th>
         <th>Author</th>
         <th>Category</th>
+        <th>Language</th>
         <th>ISBN</th>
-        <th>Price</th>
+        <th>Selling Price</th>
         <th>Stock</th>
         <th>Status</th>
         <th>Action</th>
@@ -136,12 +176,16 @@
           <td>{{ book.title }}</td>
           <td>{{ book.author }}</td>
           <td>{{ book.category || '-' }}</td>
+          <td>{{ book.language || '-' }}</td>
           <td>{{ book.isbn || '-' }}</td>
-          <td>${{ book.price }}</td>
+          <td>${{ bookService.getSellingPrice(book) }}</td>
           <td>{{ book.stock }}</td>
           <td>
-            <span class="status-badge" [class.active]="book.isActive !== false" [class.inactive]="book.isActive === false">
-              {{ book.isActive !== false ? 'Active' : 'Inactive' }}
+            <span class="status-badge"
+              [class.active]="getBookStatus(book) === 'Active'"
+              [class.inactive]="getBookStatus(book) === 'Inactive'"
+              [class.archived]="getBookStatus(book) === 'Archived'">
+              {{ getBookStatus(book) }}
             </span>
           </td>
           <td>

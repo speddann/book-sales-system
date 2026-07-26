@@ -39,7 +39,7 @@ public class ExceptionMiddleware
         {
             IsSuccess = false,
             Message = ex.Message,
-            Data = (object)null
+            Data = (object?)null
         };
 
         return context.Response.WriteAsync(JsonSerializer.Serialize(response));

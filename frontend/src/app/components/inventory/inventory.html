@@ -8,8 +8,88 @@
   <p class="error">{{ error }}</p>
 }
 
+<section class="bulk-import-section">
+  <h2>Bulk Inventory Import</h2>
+
+  @if (importMessage) {
+    <p class="success">{{ importMessage }}</p>
+  }
+
+  @if (importError) {
+    <p class="error">{{ importError }}</p>
+  }
+
+  <div class="bulk-import-actions">
+    <button type="button" (click)="downloadTemplate('current')">Download Current Inventory Template</button>
+    <button type="button" (click)="downloadTemplate('blank')">Download Blank Template</button>
+
+    <input
+      type="file"
+      accept=".xlsx,.csv"
+      (change)="onImportFileSelected($event)"
+    />
+
+    <button type="button" (click)="previewImport()" [disabled]="!selectedImportFile || isPreviewingImport">
+      {{ isPreviewingImport ? 'Previewing...' : 'Preview Import' }}
+    </button>
+
+    <button
+      type="button"
+      (click)="confirmImport()"
+      [disabled]="!importPreview || importPreview.errorRowCount > 0 || importPreview.validRowCount === 0 || isConfirmingImport">
+      {{ isConfirmingImport ? 'Importing...' : 'Confirm Import' }}
+    </button>
+  </div>
+
+  @if (importPreview) {
+    <div class="import-summary" [class.import-summary-error]="importPreview.errorRowCount > 0">
+      <span>Total rows: {{ importPreview.totalRows }}</span>
+      <span>Ready to import: {{ importPreview.validRowCount }}</span>
+      <span>Needs fixing: {{ importPreview.errorRowCount }}</span>
+    </div>
+
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Row #</th>
+          <th>ISBN</th>
+          <th>Book Title</th>
+          <th>Current Stock</th>
+          <th>Quantity</th>
+          <th>TransactionType</th>
+          <th>Stock After</th>
+          <th>ReasonCategory</th>
+          <th>TransactionDate</th>
+          <th>Notes</th>
+          <th>Status</th>
+          <th>Error Message</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (row of previewRows; track row.rowNumber) {
+          <tr [class.import-error-row]="row.status === 'Error'">
+            <td>{{ row.rowNumber }}</td>
+            <td>{{ row.isbn }}</td>
+            <td>{{ row.bookTitle || '-' }}</td>
+            <td>{{ row.currentStock ?? '-' }}</td>
+            <td>{{ row.quantity }}</td>
+            <td>{{ row.transactionType }}</td>
+            <td>{{ row.stockAfter ?? 'Invalid' }}</td>
+            <td>{{ row.reasonCategory }}</td>
+            <td>{{ row.transactionDate ? formatDate(row.transactionDate) : '-' }}</td>
+            <td>{{ row.notes || '-' }}</td>
+            <td>{{ row.status }}</td>
+            <td>{{ row.errorMessage || '-' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
 @if (books().length === 0) {
-  <p>No books found.</p>
+  <p>{{ isLoadingBooks ? 'Loading books...' : 'No books found.' }}</p>
 }
 
 <h2>Low Stock Alerts</h2>
@@ -66,64 +146,84 @@
   </table>
 }
 
-<div class="inventory-toolbar">
-  <input
-    type="text"
-    placeholder="Search books by title or author"
-    [(ngModel)]="inventorySearchText"
-  />
-</div>
+<section class="manual-adjustment-section">
+  <h2>Manual Stock Adjustment</h2>
 
-<table class="inventory-table">
-  <thead>
-    <tr>
-      <th>Book</th>
-      <th>Author</th>
-      <th>Current Stock</th>
-      <th>Type</th>
-      <th>Quantity</th>
-      <th>Reason</th>
-      <th>Action</th>
-    </tr>
-  </thead>
+  <div class="manual-search-grid">
+    <label>
+      Search
+      <input
+        type="text"
+        placeholder="Search books by title, author, or ISBN"
+        [(ngModel)]="inventorySearchText"
+      />
+    </label>
 
-  <tbody>
-    @for (book of filteredBooks; track book.id) {
-      <tr>
-        <td>{{ book.title }}</td>
-        <td>{{ book.author }}</td>
-        <td>{{ book.stock }}</td>
+    <label>
+      Book
+      <select [(ngModel)]="selectedManualBookId">
+        <option [ngValue]="null">Select a book</option>
+        @for (book of manualBookOptions; track book.id) {
+          <option [ngValue]="book.id">
+            {{ book.title }} | {{ book.isbn || 'No ISBN' }} | Stock: {{ book.stock }}
+          </option>
+        }
+      </select>
+    </label>
+  </div>
 
-        <td>
-          <select [(ngModel)]="adjustments[book.id!].type">
-            <option value="increase">Increase</option>
-            <option value="decrease">Decrease</option>
+  @if (selectedManualBook; as book) {
+    <div class="manual-book-card">
+      <div class="manual-book-meta">
+        <b>{{ book.title }}</b>
+        <span>ISBN: {{ book.isbn || '-' }}</span>
+        <span>Category: {{ book.category || '-' }}</span>
+        <span>Language: {{ book.language || '-' }}</span>
+        <span>Current Stock: {{ book.stock }}</span>
+      </div>
+
+      <div class="manual-form-grid">
+        <label>
+          Type
+          <select [(ngModel)]="adjustments[book.id!].transactionType">
+            <option value="Increase">Increase</option>
+            <option value="Decrease">Decrease</option>
           </select>
-        </td>
+        </label>
 
-        <td>
-          <input
-            type="number"
-            min="1"
-            [(ngModel)]="adjustments[book.id!].quantity"
-          />
-        </td>
+        <label>
+          Quantity
+          <input type="number" min="1" [(ngModel)]="adjustments[book.id!].quantity" />
+        </label>
 
-        <td>
-          <input
-            type="text"
-            placeholder="Reason"
-            [(ngModel)]="adjustments[book.id!].reason"
-          />
-        </td>
+        <label>
+          Reason Category
+          <select [(ngModel)]="adjustments[book.id!].reasonCategory">
+            @for (category of reasonCategories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </label>
 
-        <td>
-          <button (click)="updateStock(book)">Update Stock</button>
-        </td>
-      </tr>
-    }
-  </tbody>
-</table>
+        <label>
+          Transaction Date
+          <input type="date" [(ngModel)]="adjustments[book.id!].transactionDate" />
+        </label>
+
+        <label class="manual-notes">
+          Notes
+          <input type="text" placeholder="Optional notes" [(ngModel)]="adjustments[book.id!].notes" />
+        </label>
+
+        <button
+          (click)="updateStock(book)"
+          [disabled]="updatingBookId === book.id || book.status === 'Archived'">
+          {{ updatingBookId === book.id ? 'Saving...' : 'Update Stock' }}
+        </button>
+      </div>
+    </div>
+  }
+</section>
 
 <section class="history-section">
   <h2>Inventory History</h2>
@@ -164,7 +264,7 @@
   </div>
 
   @if (inventoryHistory().length === 0) {
-    <p>No inventory history yet.</p>
+    <p>{{ isLoadingHistory ? 'Loading inventory history...' : 'No inventory history yet.' }}</p>
   }
 
   @if (inventoryHistory().length > 0) {
@@ -173,24 +273,28 @@
         <tr>
           <th>Date</th>
           <th>Book</th>
+          <th>ISBN</th>
           <th>Type</th>
           <th>Qty</th>
           <th>Before</th>
           <th>After</th>
-          <th>Reason</th>
+          <th>Reason Category</th>
+          <th>Notes</th>
         </tr>
       </thead>
 
       <tbody>
         @for (transaction of inventoryHistory(); track transaction.id) {
           <tr>
-            <td>{{ formatDate(transaction.createdDate) }}</td>
+            <td>{{ formatDate(transaction.transactionDate || transaction.createdDate) }}</td>
             <td>{{ transaction.bookTitle }}</td>
-            <td>{{ transaction.type }}</td>
+            <td>{{ transaction.bookISBN || '-' }}</td>
+            <td>{{ getTransactionTypeLabel(transaction.transactionType || transaction.type) }}</td>
             <td>{{ transaction.quantity }}</td>
             <td>{{ transaction.stockBefore }}</td>
             <td>{{ transaction.stockAfter }}</td>
-            <td>{{ transaction.reason }}</td>
+            <td>{{ transaction.reasonCategory || transaction.reason }}</td>
+            <td>{{ transaction.notes || '-' }}</td>
           </tr>
         }
       </tbody>

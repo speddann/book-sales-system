@@ -3,7 +3,7 @@ import { EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Observable } from 'rxjs';
-import { BookService, Book, CartItem } from '../../services/book';
+import { BookService, BookPublicDto, CartItem } from '../../services/book';
 
 @Component({
   selector: 'app-book-list',
@@ -17,21 +17,21 @@ export class BookListComponent implements OnInit {
 
   @Output() checkoutSuccess = new EventEmitter<void>();
 
-  books = signal<Book[]>([]);
+  books = signal<BookPublicDto[]>([]);
   cart$: Observable<CartItem[]>;
   showOrders = false;
   sales$: Observable<any[]>;
   isCheckingOut: boolean = false;
   checkoutMessage: string = '';
   checkoutError: string = '';
-  selectedBook: Book | null = null;
+  selectedBook: BookPublicDto | null = null;
   searchText: string = '';
   selectedCategory: string = 'all';
   sortBy: string = 'title-asc';
   pageSize: number = 20;
   currentPage: number = 1;
 
-  constructor(private bookService: BookService) {
+  constructor(public bookService: BookService) {
     this.sales$ = this.bookService.sales$;
     this.cart$ = this.bookService.cart$;
   }
@@ -41,8 +41,8 @@ export class BookListComponent implements OnInit {
   }
 
   loadBooks() {
-    this.bookService.getBooks().subscribe(data => {
-      this.books.set(data.filter(book => book.isActive !== false));
+    this.bookService.getPublicBooks().subscribe(data => {
+      this.books.set(data.filter(book => this.bookService.isSellable(book)));
       this.currentPage = 1;
     });
   }
@@ -55,8 +55,8 @@ export class BookListComponent implements OnInit {
     return [...new Set(categories)];
   }
 
-  get filteredBooks(): Book[] {
-    let result = this.books().filter(book => book.isActive !== false);
+  get filteredBooks(): BookPublicDto[] {
+    let result = this.books().filter(book => this.bookService.isSellable(book));
 
     const search = this.searchText.toLowerCase().trim();
 
@@ -79,9 +79,9 @@ export class BookListComponent implements OnInit {
         case 'author-asc':
           return a.author.localeCompare(b.author);
         case 'price-low':
-          return a.price - b.price;
+          return this.bookService.getSellingPrice(a) - this.bookService.getSellingPrice(b);
         case 'price-high':
-          return b.price - a.price;
+          return this.bookService.getSellingPrice(b) - this.bookService.getSellingPrice(a);
         case 'stock-low':
           return a.stock - b.stock;
         default:
@@ -104,7 +104,7 @@ export class BookListComponent implements OnInit {
     return Math.ceil(this.filteredBooks.length / this.pageSize) || 1;
   }
 
-  get pagedBooks(): Book[] {
+  get pagedBooks(): BookPublicDto[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredBooks.slice(start, start + this.pageSize);
   }
@@ -133,8 +133,8 @@ export class BookListComponent implements OnInit {
     this.currentPage = 1;
   }
 
-  addToCart(book: Book) {
-    if (book.isActive === false) {
+  addToCart(book: BookPublicDto) {
+    if (!this.bookService.isSellable(book)) {
       alert('This book is inactive and cannot be sold.');
       return;
     }
@@ -150,7 +150,7 @@ export class BookListComponent implements OnInit {
     this.bookService.removeFromCart(id);
   }
 
-  openDetail(book: Book) {
+  openDetail(book: BookPublicDto) {
     this.selectedBook = book;
   }
 
@@ -169,7 +169,7 @@ export class BookListComponent implements OnInit {
   }
 
   getTotalPrice(cart: CartItem[]) {
-    return cart.reduce((total, item) => total + item.book.price * item.quantity, 0);
+    return cart.reduce((total, item) => total + this.bookService.getSellingPrice(item.book) * item.quantity, 0);
   }
 
   checkout() {

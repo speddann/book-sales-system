@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BookService, Book } from '../../services/book';
+import { BookService, BookAdminDto } from '../../services/book';
 
 @Component({
   selector: 'app-manage-books',
@@ -23,8 +23,8 @@ export class ManageBooksComponent implements OnInit {
     'Other'
   ];
 
-  books = signal<Book[]>([]);
-  editingBook: Book | null = null;
+  books = signal<BookAdminDto[]>([]);
+  editingBook: BookAdminDto | null = null;
   searchText = '';
   selectedCategory = 'all';
   statusFilter = 'all';
@@ -32,19 +32,19 @@ export class ManageBooksComponent implements OnInit {
   message = '';
   error = '';
 
-  constructor(private bookService: BookService) {}
+  constructor(public bookService: BookService) {}
 
   ngOnInit(): void {
     this.loadBooks();
   }
 
   loadBooks(): void {
-    this.bookService.getBooks().subscribe(data => {
+    this.bookService.getAdminBooks().subscribe(data => {
       this.books.set(data);
     });
   }
 
-  get filteredBooks(): Book[] {
+  get filteredBooks(): BookAdminDto[] {
     let result = this.books();
 
     const search = this.searchText.toLowerCase().trim();
@@ -61,12 +61,8 @@ export class ManageBooksComponent implements OnInit {
       result = result.filter(book => book.category === this.selectedCategory);
     }
 
-    if (this.statusFilter === 'active') {
-      result = result.filter(book => book.isActive !== false);
-    }
-
-    if (this.statusFilter === 'inactive') {
-      result = result.filter(book => book.isActive === false);
+    if (this.statusFilter !== 'all') {
+      result = result.filter(book => this.getBookStatus(book) === this.statusFilter);
     }
 
     result = [...result].sort((a, b) => {
@@ -94,8 +90,14 @@ export class ManageBooksComponent implements OnInit {
     this.sortBy = 'title-asc';
   }
 
-  editBook(book: Book): void {
-    this.editingBook = { ...book };
+  editBook(book: BookAdminDto): void {
+    this.editingBook = {
+      ...book,
+      sellingPrice: this.bookService.getSellingPrice(book),
+      coverImageUrl: this.bookService.getCoverImageUrl(book),
+      shortDescription: this.bookService.getShortDescription(book),
+      status: this.getBookStatus(book)
+    };
     this.message = '';
     this.error = '';
   }
@@ -106,6 +108,26 @@ export class ManageBooksComponent implements OnInit {
 
   updateBook(): void {
     if (!this.editingBook?.id) return;
+
+    if (!this.editingBook.title.trim()) {
+      this.error = 'Book title is required.';
+      return;
+    }
+
+    if ((this.editingBook.sellingPrice ?? 0) < 0) {
+      this.error = 'Selling price cannot be negative.';
+      return;
+    }
+
+    if ((this.editingBook.costPrice ?? 0) < 0) {
+      this.error = 'Cost price cannot be negative.';
+      return;
+    }
+
+    if (this.editingBook.stock < 0) {
+      this.error = 'Stock cannot be negative.';
+      return;
+    }
 
     this.bookService.updateBook(this.editingBook.id, this.editingBook).subscribe({
       next: () => {
@@ -121,7 +143,7 @@ export class ManageBooksComponent implements OnInit {
     });
   }
 
-  deleteBook(book: Book): void {
+  deleteBook(book: BookAdminDto): void {
     if (!book.id) return;
 
     const confirmed = confirm(`Delete "${book.title}"?`);
@@ -139,5 +161,9 @@ export class ManageBooksComponent implements OnInit {
         this.message = '';
       }
     });
+  }
+
+  getBookStatus(book: BookAdminDto): string {
+    return book.status ?? (book.isActive === false ? 'Inactive' : 'Active');
   }
 }

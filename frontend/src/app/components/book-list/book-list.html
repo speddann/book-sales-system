@@ -54,8 +54,8 @@
         <div class="book-container">
           @for (book of pagedBooks; track book.id) {
             <div class="book-card" (click)="openDetail(book)">
-              @if (book.imageUrl) {
-                <img class="book-image" [src]="book.imageUrl" [alt]="book.title" />
+              @if (bookService.getCoverImageUrl(book)) {
+                <img class="book-image" [src]="bookService.getCoverImageUrl(book)" [alt]="book.title" />
               } @else {
                 <div class="book-image-placeholder">
                   <span>No Photo Yet</span>
@@ -67,14 +67,17 @@
                 @if (book.category) {
                   <span class="book-category-badge">{{ book.category }}</span>
                 }
+                @if (book.language) {
+                  <p class="book-language">{{ book.language }}</p>
+                }
                 @if (book.isbn) {
                   <p class="book-isbn">ISBN: {{ book.isbn }}</p>
                 }
-                @if (book.description) {
-                  <p class="book-description">{{ book.description }}</p>
+                @if (bookService.getShortDescription(book)) {
+                  <p class="book-description">{{ bookService.getShortDescription(book) }}</p>
                 }
                 <div class="book-card-footer">
-                  <span class="book-price">${{ book.price }}</span>
+                  <span class="book-price">${{ bookService.getSellingPrice(book) }}</span>
                   <span class="stock-badge"
                     [class.in-stock]="book.stock > 10"
                     [class.low-stock]="book.stock > 0 && book.stock <= 10"
@@ -122,13 +125,13 @@
               <b>{{ item.book.title }}</b>
             </div>
             <div class="cart-item-row">
-              <span class="text-muted">${{ item.book.price }} each</span>
+              <span class="text-muted">${{ bookService.getSellingPrice(item.book) }} each</span>
               <div class="cart-qty-controls">
                 <button class="qty-btn" (click)="decreaseCartItem(item)">&#8722;</button>
                 <span>{{ item.quantity }}</span>
                 <button class="qty-btn" (click)="addToCart(item.book)">+</button>
               </div>
-              <span class="cart-item-total">${{ (item.book.price * item.quantity) | number:'1.2-2' }}</span>
+              <span class="cart-item-total">${{ (bookService.getSellingPrice(item.book) * item.quantity) | number:'1.2-2' }}</span>
               <button class="remove-cart-btn" (click)="removeItemFromCart(item)">&times;</button>
             </div>
           </div>
@@ -160,8 +163,8 @@
       <div class="modal-card" (click)="$event.stopPropagation()">
         <button class="modal-close" (click)="closeDetail()">&#10005;</button>
 
-        @if (selectedBook.imageUrl) {
-          <img class="modal-image" [src]="selectedBook.imageUrl" [alt]="selectedBook.title" />
+        @if (bookService.getCoverImageUrl(selectedBook)) {
+          <img class="modal-image" [src]="bookService.getCoverImageUrl(selectedBook)" [alt]="selectedBook.title" />
         } @else {
           <div class="modal-image-placeholder">
             <span>Photo Coming Soon</span>
@@ -176,16 +179,20 @@
             <p class="modal-category">{{ selectedBook.category }}</p>
           }
 
+          @if (selectedBook.language) {
+            <p class="modal-isbn">Language: {{ selectedBook.language }}</p>
+          }
+
           @if (selectedBook.isbn) {
             <p class="modal-isbn">ISBN: {{ selectedBook.isbn }}</p>
           }
 
-          @if (selectedBook.description) {
-            <p class="modal-description">{{ selectedBook.description }}</p>
+          @if (selectedBook.longDescription || bookService.getShortDescription(selectedBook)) {
+            <p class="modal-description">{{ selectedBook.longDescription || bookService.getShortDescription(selectedBook) }}</p>
           }
 
           <div class="modal-meta">
-            <span class="modal-price">${{ selectedBook.price }}</span>
+            <span class="modal-price">${{ bookService.getSellingPrice(selectedBook) }}</span>
             <span class="stock-badge"
               [class.in-stock]="selectedBook.stock > 10"
               [class.low-stock]="selectedBook.stock > 0 && selectedBook.stock <= 10"
